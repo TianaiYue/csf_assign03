@@ -1,21 +1,15 @@
 # Makefile for CSF Assignment 3
 
-CC = g++
+CXX = g++
 CFLAGS = -g -std=c++14 -Wall -Wextra -pedantic
 
-ASMFLAGS = -g -no-pie
+all: csim
 
-LDFLAGS = -no-pie
+csim : main.o
+	$(CXX) $(LDFLAGS) -o csim main.o
 
-TARGET = csim
-
-all: $(TARGET)
-
-$(TARGET): main.o
-	$(CXX) $(CXXFLAGS) -o $(TARGET) main.o
-
-csim.o: main.cpp
-	$(CXX) $(CXXFLAGS) -c main.cpp
+main.o: main.cpp
+	$(CXX) $(CFLAGS) -c main.cpp
 
 .PHONY: solution.zip
 
@@ -30,8 +24,6 @@ depend.mak :
 	touch $@
 
 depend :
-	$(CC) $(CFLAGS) -M \
-		$(COMMON_C_SRCS) $(C_SRCS) $(DRIVER_SRCS) $(TEST_SRCS) \
-		> depend.mak
+	$(CXX) $(CFLAGS) -M > depend.mak
 
 include depend.mak
