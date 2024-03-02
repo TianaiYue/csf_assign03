@@ -1,7 +1,7 @@
 # Makefile for CSF Assignment 3
 
 CC = g++
-CFLAGS = -g -Wall -std=gnu11 -no-pie
+CFLAGS = -g -std=c++14 -Wall -Wextra -pedantic
 
 ASMFLAGS = -g -no-pie
 
@@ -21,7 +21,7 @@ csim.o: main.cpp
 
 solution.zip :
 	rm -f $@
-	zip -9r $@ *.h *.cpp Makefile README.txt
+	zip -9r $@ *.cpp Makefile README.txt
 
 clean :
 	rm -f *.o $(EXES)
