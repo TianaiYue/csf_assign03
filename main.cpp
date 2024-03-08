@@ -71,25 +71,12 @@ size_t findEvictionCandidate(const Set& set, const string& eviction_policy) {
                 candidateIndex = i;
             }
         }
-        return candidateIndex; // Return the LRU slot
-    } else if (eviction_policy == "fifo") {
-        // FIFO eviction logic
-        uint64_t oldestLoadTime = numeric_limits<uint64_t>::max();
-        size_t oldestIndex = 0;
 
-        for (size_t i = 0; i < set.slots.size(); ++i) {
-            if (!set.slots[i].valid) {
-                return i; // Prefer empty slots first
-            }
-            if (set.slots[i].load_ts < oldestLoadTime) {
-                oldestLoadTime = set.slots[i].load_ts;
-                oldestIndex = i;
-            }
-        }
-        return oldestIndex; // Return the FIFO slot
+        return candidateIndex;
+    } else if (eviction_policy == "fifo") {
+       // TODO for A3MS3
+        return 0;
     }
-    // Default to 0 if the policy is not recognized (should not happen with proper validation)
-    return 0;
 }
 
 
@@ -105,12 +92,11 @@ void evictBlockLRU(Set& set) {
         }
     }
 
-    // Evict the block by invalidating the slot
     set.slots[min_index].valid = false;
 }
 
 void evictBlockFIFO(Set& set) {
-    //TODO
+    // TODO for A3MS3
 }
 
 void evictBlock(Cache& cache, Set& set) {
@@ -129,7 +115,7 @@ size_t handleCacheMiss(Cache& cache, Set& set, uint32_t tag) {
         size_t slotIndex = findEvictionCandidate(set, cache.eviction_policy);
 
         if (set.slots[slotIndex].valid && set.slots[slotIndex].dirty && cache.write_back) {
-            // If the slot to be evicted is dirty and write-back is enabled, simulate writing back to memory
+            // writing back to memory
         }
 
         evictBlock(cache, set);
@@ -142,7 +128,6 @@ size_t handleCacheMiss(Cache& cache, Set& set, uint32_t tag) {
         set.slots[slotIndex].load_ts = getCurrentTime();
 
         return slotIndex;
-
     } else {
         return 0;
     }
