@@ -93,8 +93,6 @@ void update_slot(Set& set, size_t slotIndex, uint32_t tag, bool isStore, Cache& 
     set.slots[slotIndex].access_ts = cache.operationCounter++;
 }
 
-
-
 void accessCache(Cache& cache, uint32_t address, bool isStore) {
     unsigned index = (address >> cache.block_offset) & ((1 << cache.num_bits) - 1);
     unsigned tag = address >> (cache.num_bits + cache.block_offset);
@@ -103,63 +101,60 @@ void accessCache(Cache& cache, uint32_t address, bool isStore) {
 
     // Loop over slots to find a hit
     for (Slot& slot : set.slots) {
+        // Increment total stores or loads regardless of hit or miss
         if (slot.valid && slot.tag == tag) {
             hit = true;
             slot.access_ts = cache.operationCounter++; // Update access timestamp
+
             if (isStore) {
+                cache.store_hits++;
                 if (cache.write_back) {
-                    // Mark slot as dirty if write-back cache and storing
-                    slot.dirty = cache.write_back;
-                    cache.store_hits++;
+                    // Write-back cache: increment cycles by 1 and set the slot as dirty
+                    cache.total_cycles++;
+                    slot.dirty = true;
                 } else {
-                    // For write-through, write penalty because data is written to the next level of memory
-                    cache.store_hits++;
+                    // Write-through cache: increment cycles by the write penalty
                     cache.total_cycles += 100;
                 }
             } else {
                 cache.load_hits++;
+                // Read operations don't change the dirty status
+                cache.total_cycles++;
             }
-            // Increment for cache access time
-            cache.total_cycles++;
-            break;
+            break; // Exit the loop if a hit is found
         }
     }
 
-    // If it is a miss
     if (!hit) {
-        // Miss penalty for transferring the block and miss detection
-        cache.total_cycles += (cache.num_bytes_per_block / 4) * 100 + 1;
-
+        // Handle cache miss
         if (isStore) {
             cache.store_misses++;
         } else {
             cache.load_misses++;
         }
 
-        // Find replacement slot index
-        size_t slotIndex = findIndex(set, cache.eviction_policy);
-        
-        // For write-back, check if we need to write back the dirty block
-        if (cache.write_back && set.slots[slotIndex].valid && set.slots[slotIndex].dirty) {
-            cache.total_cycles += (cache.num_bytes_per_block / 4) * 100; // Write-back penalty
+        if (isStore && !cache.write_allocate) {
+            cache.total_stores++;
+            cache.total_cycles +=100;
+            return;
         }
-        
-        if (cache.write_allocate || !isStore) {
-            update_slot(set, slotIndex, tag, isStore, cache);
 
-            // If write-through and a store, add the write penalty
-            if (!cache.write_back && isStore) {
-                cache.total_cycles += 100;
+        // Common miss penalty for transferring data into cache
+        cache.total_cycles += (cache.num_bytes_per_block / 4) * 100;
+
+        // If no write-allocate and it's a store, write directly to memory
+        if (isStore && !cache.write_allocate) {
+            // no-write-allocate
+        } else {
+            // write-allocate
+            size_t slotIndex = findIndex(set, cache.eviction_policy);
+            // For write-back cache and dirty slot, additional penalty for writing back
+            if (cache.write_back && set.slots[slotIndex].valid && set.slots[slotIndex].dirty) {
+                cache.total_cycles += (cache.num_bytes_per_block / 4) * 100;
             }
-        } else if (isStore && !cache.write_allocate) {
-            // For a store miss without write-allocate, write directly to lower memory only for write-through
-            if (!cache.write_back) {
-                cache.total_cycles += 100;
-            }
-            // No block is loaded into the cache
+            update_slot(set, slotIndex, tag, isStore, cache);
         }
     }
-
     // Increment total stores or loads regardless of hit or miss
     if (isStore) {
         cache.total_stores++;
@@ -167,7 +162,6 @@ void accessCache(Cache& cache, uint32_t address, bool isStore) {
         cache.total_loads++;
     }
 }
-
 
 
 
