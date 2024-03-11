@@ -84,54 +84,72 @@ size_t findIndex(const Set& set, const string& eviction_policy) {
 }
 
 
-
 void accessCache(Cache& cache, uint32_t address, bool isStore) {
     unsigned index = (address >> cache.block_offset) & ((1 << cache.num_bits) - 1);
     unsigned tag = address >> (cache.num_bits + cache.block_offset);
     Set& set = cache.sets[index];
     bool hit = false;
 
+    // Loop over slots to find a hit
     for (Slot& slot : set.slots) {
         if (slot.valid && slot.tag == tag) {
             hit = true;
-            slot.access_ts = cache.operationCounter++; // Use operationCounter to update access_ts
+            slot.access_ts = cache.operationCounter++; // Update access timestamp
             if (isStore) {
-                slot.dirty = cache.write_back; // Mark slot as dirty if write-back cache and storing
                 cache.store_hits++;
+                if (cache.write_back) {
+                    // Mark slot as dirty if write-back cache and storing
+                    slot.dirty = true;
+                } else {
+                    // For write-through, write penalty because data is written to the next level of memory
+                    cache.total_cycles += 100;
+                }
             } else {
                 cache.load_hits++;
             }
-            cache.total_cycles++; // Increment for cache access time
+            // Increment for cache access time
+            cache.total_cycles++;
             break;
         }
     }
 
+    // If it is a miss
     if (!hit) {
         cache.total_cycles++; // Increment for miss detection
-
         if (isStore) {
             cache.store_misses++;
-            if (!cache.write_allocate) {
-                cache.total_cycles += (cache.num_bytes_per_block / 4) * 100;
-                return;
-            }
         } else {
             cache.load_misses++;
         }
-        cache.total_cycles += (cache.num_bytes_per_block / 4) * 100; // Miss penalty for transferring the block
+        // Miss penalty for transferring the block
+        cache.total_cycles += (cache.num_bytes_per_block / 4) * 100;
 
-        size_t slotIndex = findIndex(set, cache.eviction_policy); // Pass current operation counter
+        // Find replacement slot index
+        size_t slotIndex = findIndex(set, cache.eviction_policy);
 
-        // Handle the cache miss by loading the block into the cache
+        // If the cache policy is write-allocate or it's a read miss
         if (cache.write_allocate || !isStore) {
+            // For write-back, check if we need to write back the dirty block
             if (cache.write_back && set.slots[slotIndex].valid && set.slots[slotIndex].dirty) {
-                cache.total_cycles += (cache.num_bytes_per_block / 4) * 100; // Write-back penalty
+                // Write-back penalty for transferring the dirty block
+                cache.total_cycles += (cache.num_bytes_per_block / 4) * 100;
             }
+            
+            // Update the slot information
             set.slots[slotIndex].tag = tag;
             set.slots[slotIndex].valid = true;
-            set.slots[slotIndex].dirty = isStore;
-            set.slots[slotIndex].load_ts = cache.operationCounter; // Update load_ts for new loads
-            set.slots[slotIndex].access_ts = cache.operationCounter; // Also update access_ts for new loads
+            set.slots[slotIndex].dirty = false; // Fresh block is not dirty
+            set.slots[slotIndex].load_ts = cache.operationCounter; // Update load timestamp
+            set.slots[slotIndex].access_ts = cache.operationCounter++; // Update access timestamp
+
+            // If write-through and a store, add the write penalty
+            if (!cache.write_back && isStore) {
+                cache.total_cycles += 100;
+            }
+        } else if (cache.write_back && isStore && !cache.write_allocate) {
+            // If it's write-back and no-write-allocate, we don't load the block into the cache on a store miss
+            // Instead, we write directly to the lower memory level, so add the write penalty
+            cache.total_cycles += 100;
         }
     }
 
