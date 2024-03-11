@@ -20,8 +20,9 @@ struct Slot {
     bool valid;
     bool dirty;
     uint64_t load_ts, access_ts;
+    uint64_t operationCounter;
 
-    Slot() : tag(0), valid(false), dirty(false), load_ts(0), access_ts(0) {}
+    Slot() : tag(0), valid(false), dirty(false), load_ts(0), access_ts(0), operationCounter(0) {}
 };
 
 struct Set {
@@ -37,8 +38,8 @@ struct Cache {
     bool write_allocate;
     bool write_back;
     string eviction_policy;
-    int block_offset;
-    int num_bits;
+    unsigned block_offset;
+    unsigned num_bits;
 
     int total_loads = 0;
     int total_stores = 0;
@@ -47,11 +48,12 @@ struct Cache {
     int store_hits = 0;
     int store_misses = 0;
     long long total_cycles = 0;
+    uint64_t operationCounter;
 
-    Cache(int num_sets, int blocks_per_set, int num_bytes_per_block, bool write_allocate, bool write_back, string eviction_policy, int block_offset, int num_bits)
+    Cache(int num_sets, int blocks_per_set, int num_bytes_per_block, bool write_allocate, bool write_back, string eviction_policy, unsigned block_offset, unsigned num_bits)
         : sets(num_sets, Set(blocks_per_set)), blocks_per_set(blocks_per_set),
           num_bytes_per_block(num_bytes_per_block), write_allocate(write_allocate), write_back(write_back), eviction_policy(eviction_policy),
-          block_offset(block_offset), num_bits(num_bits){}
+          block_offset(block_offset), num_bits(num_bits), operationCounter(0){}
 };
 
 uint64_t getCurrentTime() {
@@ -61,85 +63,87 @@ uint64_t getCurrentTime() {
     return static_cast<uint64_t>(millis);
 }
 
-size_t findEvictionCandidate(const Set& set, const string& eviction_policy) {
+size_t findIndex(const Set& set, const string& eviction_policy) {
     if (eviction_policy == "lru") {
         uint64_t oldestAccessTime = numeric_limits<uint64_t>::max();
         size_t candidateIndex = 0;
 
         for (size_t i = 0; i < set.slots.size(); ++i) {
             if (!set.slots[i].valid) {
-                return i;
+                return i; // Prefer using an empty slot
             }
             if (set.slots[i].access_ts < oldestAccessTime) {
                 oldestAccessTime = set.slots[i].access_ts;
                 candidateIndex = i;
             }
         }
-
         return candidateIndex;
     }
-    // Add other eviction policies for fifo
-    else if (eviction_policy == "fifo") {
-        return 0;
-    }
+    // Handle other policies like "fifo" as needed
     return 0;
 }
+
+
 
 void accessCache(Cache& cache, uint32_t address, bool isStore) {
     unsigned index = (address >> cache.block_offset) & ((1 << cache.num_bits) - 1);
     unsigned tag = address >> (cache.num_bits + cache.block_offset);
-
     Set& set = cache.sets[index];
     bool hit = false;
 
     for (Slot& slot : set.slots) {
         if (slot.valid && slot.tag == tag) {
             hit = true;
-            slot.access_ts = getCurrentTime();
-
+            slot.access_ts = cache.operationCounter++; // Use operationCounter to update access_ts
             if (isStore) {
-                slot.dirty = cache.write_back;
+                slot.dirty = cache.write_back; // Mark slot as dirty if write-back cache and storing
                 cache.store_hits++;
             } else {
                 cache.load_hits++;
             }
-
-            cache.total_cycles++;
+            cache.total_cycles++; // Increment for cache access time
             break;
         }
     }
 
     if (!hit) {
+        cache.total_cycles++; // Increment for miss detection
+
         if (isStore) {
             cache.store_misses++;
+            if (!cache.write_allocate) {
+                cache.total_cycles += (cache.num_bytes_per_block / 4) * 100;
+                return;
+            }
         } else {
             cache.load_misses++;
         }
+        cache.total_cycles += (cache.num_bytes_per_block / 4) * 100; // Miss penalty for transferring the block
 
-        cache.total_cycles = cache.total_cycles + cache.num_bytes_per_block / 4 * 100;; // simulating the miss penalty
+        size_t slotIndex = findIndex(set, cache.eviction_policy); // Pass current operation counter
 
+        // Handle the cache miss by loading the block into the cache
         if (cache.write_allocate || !isStore) {
-            size_t slotIndex = findEvictionCandidate(set, cache.eviction_policy);
-
-            if (set.slots[slotIndex].valid && set.slots[slotIndex].dirty && cache.write_back) {
-                // simulating the write-back delay if the block is dirty
-                cache.total_cycles  = cache.total_cycles + cache.num_bytes_per_block / 4 * 100;
+            if (cache.write_back && set.slots[slotIndex].valid && set.slots[slotIndex].dirty) {
+                cache.total_cycles += (cache.num_bytes_per_block / 4) * 100; // Write-back penalty
             }
-
             set.slots[slotIndex].tag = tag;
             set.slots[slotIndex].valid = true;
-            set.slots[slotIndex].dirty = isStore; 
-            set.slots[slotIndex].load_ts = getCurrentTime();
-            set.slots[slotIndex].access_ts = getCurrentTime(); 
+            set.slots[slotIndex].dirty = isStore;
+            set.slots[slotIndex].load_ts = cache.operationCounter; // Update load_ts for new loads
+            set.slots[slotIndex].access_ts = cache.operationCounter; // Also update access_ts for new loads
         }
     }
 
+    // Increment total stores or loads regardless of hit or miss
     if (isStore) {
         cache.total_stores++;
     } else {
         cache.total_loads++;
     }
 }
+
+
 
 void readFromCache(Cache& cache, uint32_t address) {
     accessCache(cache, address, false); // false indicates a load operation
@@ -187,8 +191,8 @@ int main(int argc, char *argv[]) {
     bool write_back = string(argv[5]) == "write-back";
     string eviction_policy = argv[6];
 
-    int block_offset = round(log2(num_bytes_per_block)); // number of bits used to identify byte within cache block
-    int num_bits = round(log2(num_sets)); // number of bits used to index
+    unsigned block_offset = round(log2(num_bytes_per_block)); // number of bits used to identify byte within cache block
+    unsigned num_bits = round(log2(num_sets)); // number of bits used to index
 
     Cache my_cache(num_sets, num_blocks_per_set, num_bytes_per_block, write_allocate, write_back, eviction_policy, block_offset, num_bits);
 
