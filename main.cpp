@@ -10,6 +10,8 @@
 #include <string>
 #include <chrono>
 #include <limits>
+#include <cmath>
+
 
 using namespace std;
 
@@ -31,10 +33,12 @@ struct Set {
 struct Cache {
     vector<Set> sets;
     int blocks_per_set;
-    int block_size;
+    int num_bytes_per_block;
     bool write_allocate;
     bool write_back;
     string eviction_policy;
+    int block_offset;
+    int num_bits;
 
     int total_loads = 0;
     int total_stores = 0;
@@ -44,9 +48,10 @@ struct Cache {
     int store_misses = 0;
     long long total_cycles = 0;
 
-    Cache(int num_sets, int blocks_per_set, int block_size, bool write_allocate, bool write_back, string eviction_policy)
+    Cache(int num_sets, int blocks_per_set, int num_bytes_per_block, bool write_allocate, bool write_back, string eviction_policy, int block_offset, int num_bits)
         : sets(num_sets, Set(blocks_per_set)), blocks_per_set(blocks_per_set),
-          block_size(block_size), write_allocate(write_allocate), write_back(write_back), eviction_policy(eviction_policy) {}
+          num_bytes_per_block(num_bytes_per_block), write_allocate(write_allocate), write_back(write_back), eviction_policy(eviction_policy),
+          block_offset(block_offset), num_bits(num_bits){}
 };
 
 uint64_t getCurrentTime() {
@@ -74,12 +79,17 @@ size_t findEvictionCandidate(const Set& set, const string& eviction_policy) {
         return candidateIndex;
     }
     // Add other eviction policies for fifo
+    else if (eviction_policy == "fifo") {
+        return 0;
+    }
+    return 0;
 }
 
 void accessCache(Cache& cache, uint32_t address, bool isStore) {
-    uint32_t set_index = (address / cache.block_size) % cache.sets.size();
-    uint32_t tag = address / (cache.block_size * cache.sets.size());
-    Set& set = cache.sets[set_index];
+    unsigned index = (address >> cache.block_offset) & ((1 << cache.num_bits) - 1);
+    unsigned tag = address >> (cache.num_bits + cache.block_offset);
+
+    Set& set = cache.sets[index];
     bool hit = false;
 
     for (Slot& slot : set.slots) {
@@ -106,17 +116,16 @@ void accessCache(Cache& cache, uint32_t address, bool isStore) {
             cache.load_misses++;
         }
 
-        cache.total_cycles += 100; // simulating the miss penalty
+        cache.total_cycles = cache.total_cycles + cache.num_bytes_per_block / 4 * 100;; // simulating the miss penalty
 
         if (cache.write_allocate || !isStore) {
             size_t slotIndex = findEvictionCandidate(set, cache.eviction_policy);
 
             if (set.slots[slotIndex].valid && set.slots[slotIndex].dirty && cache.write_back) {
                 // simulating the write-back delay if the block is dirty
-                cache.total_cycles += 100;
+                cache.total_cycles  = cache.total_cycles + cache.num_bytes_per_block / 4 * 100;
             }
 
-        
             set.slots[slotIndex].tag = tag;
             set.slots[slotIndex].valid = true;
             set.slots[slotIndex].dirty = isStore; 
@@ -172,13 +181,19 @@ int main(int argc, char *argv[]) {
     }
 
     int num_sets = stoi(argv[1]);
-    int blocks_per_set = stoi(argv[2]);
-    int block_size = stoi(argv[3]);
+    int num_blocks_per_set = stoi(argv[2]);
+    int num_bytes_per_block = stoi(argv[3]);
     bool write_allocate = string(argv[4]) == "write-allocate";
     bool write_back = string(argv[5]) == "write-back";
     string eviction_policy = argv[6];
 
-    Cache my_cache(num_sets, blocks_per_set, block_size, write_allocate, write_back, eviction_policy);
+    int block_offset = round(log2(num_bytes_per_block)); // number of bits used to identify byte within cache block
+    int num_bits = round(log2(num_sets)); // number of bits used to index
+
+    Cache my_cache(num_sets, num_blocks_per_set, num_bytes_per_block, write_allocate, write_back, eviction_policy, block_offset, num_bits);
+
+    cerr << "num_sets: " << num_sets << ", num_blocks_per_set: " << num_blocks_per_set << ", num_bytes_per_block: " << num_bytes_per_block << ", write_allocate: " << write_allocate << ", write_back: " << write_back << ", eviction_policy: " << eviction_policy << ", block_offset: " << block_offset << ", num_bits: " << num_bits <<"\n";
+
     read_inputs_from_stdin(my_cache);
 
     printSummary(my_cache);
