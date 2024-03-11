@@ -83,6 +83,17 @@ size_t findIndex(const Set& set, const string& eviction_policy) {
     return 0;
 }
 
+void update_slot(Set& set, size_t slotIndex, uint32_t tag, bool isStore, Cache& cache) {
+    // Update the slot information
+    set.slots[slotIndex].tag = tag;
+    set.slots[slotIndex].valid = true;
+    // For write-back, set dirty on stores; for write-through, blocks are always clean
+    set.slots[slotIndex].dirty = cache.write_back && isStore;
+    set.slots[slotIndex].load_ts = cache.operationCounter;
+    set.slots[slotIndex].access_ts = cache.operationCounter++;
+}
+
+
 
 void accessCache(Cache& cache, uint32_t address, bool isStore) {
     unsigned index = (address >> cache.block_offset) & ((1 << cache.num_bits) - 1);
@@ -96,7 +107,6 @@ void accessCache(Cache& cache, uint32_t address, bool isStore) {
             hit = true;
             slot.access_ts = cache.operationCounter++; // Update access timestamp
             if (isStore) {
-                
                 if (cache.write_back) {
                     // Mark slot as dirty if write-back cache and storing
                     slot.dirty = cache.write_back;
@@ -117,9 +127,8 @@ void accessCache(Cache& cache, uint32_t address, bool isStore) {
 
     // If it is a miss
     if (!hit) {
-        cache.total_cycles++; // Increment for miss detection
-        // Miss penalty for transferring the block
-        cache.total_cycles += (cache.num_bytes_per_block / 4) * 100;
+        // Miss penalty for transferring the block and miss detection
+        cache.total_cycles += (cache.num_bytes_per_block / 4) * 100 + 1;
 
         if (isStore) {
             cache.store_misses++;
@@ -129,21 +138,14 @@ void accessCache(Cache& cache, uint32_t address, bool isStore) {
 
         // Find replacement slot index
         size_t slotIndex = findIndex(set, cache.eviction_policy);
-
-        // If the cache policy is write-allocate or it's a read miss
         
-            // For write-back, check if we need to write back the dirty block
+        // For write-back, check if we need to write back the dirty block
         if (cache.write_back && set.slots[slotIndex].valid && set.slots[slotIndex].dirty) {
             cache.total_cycles += (cache.num_bytes_per_block / 4) * 100; // Write-back penalty
         }
+        
         if (cache.write_allocate || !isStore) {
-            // Update the slot information
-            set.slots[slotIndex].tag = tag;
-            set.slots[slotIndex].valid = true;
-            // For write-back, set dirty on stores; for write-through, blocks are always clean
-            set.slots[slotIndex].dirty = cache.write_back && isStore;
-            set.slots[slotIndex].load_ts = cache.operationCounter;
-            set.slots[slotIndex].access_ts = cache.operationCounter++;
+            update_slot(set, slotIndex, tag, isStore, cache);
 
             // If write-through and a store, add the write penalty
             if (!cache.write_back && isStore) {
