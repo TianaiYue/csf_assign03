@@ -139,24 +139,22 @@ void update_slot(Set& set, size_t slot_index, uint32_t tag, bool isStore, Cache&
 }
 
 /*
- * Handles access to the cache for both load and store operations. Determines whether the access is a hit or miss
- * and updates cache statistics accordingly. In case of a miss, it may also handle block evictions and replacements
- * according to the cache's configuration.
+ * Determines if a cache access is a hit or miss and updates the relevant cache statistics.
  *
  * Parameters:
  *   cache - Reference to the cache being accessed.
  *   address - The memory address being accessed.
- *   isStore - Boolean flag indicating whether the access is a store operation.
+ *   is_store - Boolean flag indicating whether the access is a store operation.
  *
+ * Returns:
+ *   A boolean indicating whether the access was a hit (true) or miss (false).
  */
-void access_cache(Cache& cache, uint32_t address, bool is_store) {
+bool determine_hit_or_miss(Cache& cache, uint32_t address, bool is_store) {
     // calculate set index and tag from address
     unsigned index = (address >> cache.block_offset) & ((1 << cache.num_bits) - 1);
     unsigned tag = address >> (cache.num_bits + cache.block_offset);
     Set& set = cache.sets[index];
     bool hit = false;
-
-    // check for hit or miss in the set
     for (Slot& slot : set.slots) {
         // increment total stores or loads regardless of hit or miss
         if (slot.valid && slot.tag == tag) {
@@ -182,35 +180,62 @@ void access_cache(Cache& cache, uint32_t address, bool is_store) {
     }
     // cache miss handling: increment appropriate miss counters based on operation type
     if (!hit) {
-        // handle cache miss
         if (is_store) {
             cache.store_misses++;
         } else {
             cache.load_misses++;
         }
-        // no-write-allocate: handle store miss by writing directly to memory
-        if (is_store && !cache.write_allocate) {
-            cache.total_stores++;
-            cache.total_cycles +=100;
-            return;
-        }
-        // common miss penalty for transferring data into cache
-        cache.total_cycles += (cache.num_bytes_per_block / 4) * 100;
-
-        // If no write-allocate and it's a store, write directly to memory
-        if (is_store && !cache.write_allocate) {
-            // no-write-allocate
-        } else {
-            // write-allocate or load miss: find slot to update or evict
-            size_t slotIndex = find_index(set, cache.eviction_policy);
-            // write-back: add penalty for evicting dirty block
-            if (cache.write_back && set.slots[slotIndex].valid && set.slots[slotIndex].dirty) {
-                cache.total_cycles += (cache.num_bytes_per_block / 4) * 100;
-            }
-            update_slot(set, slotIndex, tag, is_store, cache);
-        }
     }
-    // increment total stores or loads regardless of hit or miss
+    return hit;
+}
+
+
+/*
+ * Handles cache misses by finding a slot for eviction if necessary, and updates the cache block.
+ * Applies the cache's write policy and eviction policy during this process.
+ *
+ * Parameters:
+ *   cache - Reference to the cache being accessed.
+ *   address - The memory address being accessed.
+ *   is_store - Boolean flag indicating whether the access is a store operation.
+ */
+void handle_cache_miss(Cache& cache, uint32_t address, bool is_store) {
+    // calculate set index and tag from address
+    unsigned index = (address >> cache.block_offset) & ((1 << cache.num_bits) - 1);
+    unsigned tag = address >> (cache.num_bits + cache.block_offset);
+    Set& set = cache.sets[index];
+    // if no-write-allocate and store operations, write directly to memory
+    if (is_store && !cache.write_allocate) {
+        cache.total_cycles += 100;
+    } else {
+        cache.total_cycles += (cache.num_bytes_per_block / 4) * 100;
+        size_t slotIndex = find_index(set, cache.eviction_policy);
+        // write back dirty block before eviction
+        if (cache.write_back && set.slots[slotIndex].valid && set.slots[slotIndex].dirty) {
+            cache.total_cycles += (cache.num_bytes_per_block / 4) * 100;
+        }
+        // update cache slot with new block
+        update_slot(set, slotIndex, tag, is_store, cache);
+    }
+}
+
+/*
+ * Handles load or store operations for a given address in the cache, updating access statistics and managing hits or
+ * misses. Calls `determine_hit_or_miss` to check access status and `handle_cache_miss` for miss management.
+ *
+ * Parameters:
+ *   cache - The cache to access.
+ *   address - Memory address for the operation.
+ *   is_store - True for store operations, false for load operations.
+ */
+ void access_cache(Cache& cache, uint32_t address, bool is_store) {
+    // determine hit or miss status for the access
+    bool hit = determine_hit_or_miss(cache, address, is_store);
+    // if miss, handle it based on cache configuration
+    if (!hit) {
+        handle_cache_miss(cache, address, is_store);
+    }
+    // increment the total number of loads or stores after determining hit or miss
     if (is_store) {
         cache.total_stores++;
     } else {
