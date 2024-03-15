@@ -4,7 +4,7 @@
  * Cassie Zhang xzhan304
  * Tianai Yue tyue4
  */
-// cache.cpp
+
 #include "cache.h"
 #include <cmath>
 #include <limits>
