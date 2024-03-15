@@ -5,17 +5,20 @@ CFLAGS = -g -std=c++14 -Wall -Wextra -pedantic
 
 all: csim
 
-csim : main.o
-	$(CXX) $(LDFLAGS) -o csim main.o
+csim : main.o cache.o
+	$(CXX) $(LDFLAGS) -o csim main.o cache.o
 
 main.o: main.cpp
 	$(CXX) $(CFLAGS) -c main.cpp
+
+cache.o: cache.cpp cache.h
+	$(CXX) $(CXXFLAGS) -c cache.cpp
 
 .PHONY: solution.zip
 
 solution.zip :
 	rm -f $@
-	zip -9r $@ *.cpp Makefile README.txt
+	zip -9r $@ *.h *.cpp Makefile README.txt
 
 clean :
 	rm -f *.o $(EXES)
