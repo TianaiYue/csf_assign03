@@ -80,8 +80,19 @@ size_t find_index(const Set& set, const string& eviction_policy) {
             }
         }
         return candidate_index;
+    }else if (eviction_policy == "fifo") {
+        uint64_t earliest_load_time = numeric_limits<uint64_t>::max();
+        size_t candidate_index = 0;
+        for (size_t i = 0; i < set.slots.size(); ++i) {
+            if (!set.slots[i].valid) return i; // Empty slot found
+            if (set.slots[i].load_ts < earliest_load_time) {
+                earliest_load_time = set.slots[i].load_ts;
+                candidate_index = i;
+            }
+        }
+        return candidate_index;
     }
-    // Handle other policies like "fifo" as needed
+    // Default to 0 if policy not recognized (consider throwing an error or handling invalid policy)
     return 0;
 }
 
@@ -178,14 +189,16 @@ void handle_cache_miss(Cache& cache, uint32_t address, bool is_store) {
     if (is_store && !cache.write_allocate) {
         cache.total_cycles += 100;
     } else {
-        cache.total_cycles += (cache.num_bytes_per_block / 4) * 100;
-        size_t slotIndex = find_index(set, cache.eviction_policy);
-        // write back dirty block before eviction
+        // Write-allocate or a load: bring the block into the cache
+        size_t slotIndex = find_index(set, cache.eviction_policy); // Pass cache for FIFO
+        // Evict if necessary (check for dirty block if write-back)
         if (cache.write_back && set.slots[slotIndex].valid && set.slots[slotIndex].dirty) {
-            cache.total_cycles += (cache.num_bytes_per_block / 4) * 100;
+            cache.total_cycles += (cache.num_bytes_per_block / 4) * 100; // Write-back dirty block
         }
-        // update cache slot with new block
+        // Update the slot with new block data
         update_slot(set, slotIndex, tag, is_store, cache);
+        // Account for the cycles taken to load the block into the cache
+        cache.total_cycles += (cache.num_bytes_per_block / 4) * 100;
     }
 }
 
