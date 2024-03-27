@@ -264,7 +264,7 @@ void read_inputs_from_stdin(Cache& cache) {
         sscanf(line.c_str(), "%c %lx", &operation, &address);
         if (operation == 'l') {
             read_from_cache(cache, static_cast<uint32_t>(address));
-        } else if (operation == 's') {
+        } else if (operation == 's') { 
             write_to_cache(cache, static_cast<uint32_t>(address));
         }
     }
