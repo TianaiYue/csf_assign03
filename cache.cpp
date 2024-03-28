@@ -54,6 +54,7 @@ Cache::Cache(int num_sets, int blocks_per_set, int num_bytes_per_block, bool wri
 /*
  * Finds an index for a new cache block in a set according to the specified eviction policy. 
  * For LRU, it returns the index of the least recently used slot.
+ * For FIFO, it returns the index of the first slot.
  *
  * Parameters:
  *   set - The set in which to find an eviction candidate.
