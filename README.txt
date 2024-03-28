@@ -3,20 +3,104 @@ anything interesting about your implementation.
 
 Team members: Cassie Zhang xzhan304, Tianai Yue tyue4
 
+Cassie mainly implemented LRU, and Tiana mainly implemented FIFO. The rest is split amoung us.
 Both Cassie and Tianai did relatively equal amounts of work and effort.
 
-In our cache simulation, getting the cycle counts spot-on boils down to how meticulously we handle 
-the intricacies, especially for cache misses where we need to factor in the extra cycles for fetching 
-and potentially evicting blocks. For hits, it's crucial that we count them precisely. It's really about 
-us keeping an eye on these finer details to ensure our simulator reflects real-world cache performance accurately.
+Best Cache Experiment:
+To identify the cache configuration offering the highest overall effectiveness, we conducted a series 
+of tests focusing on different aspects such as hit rates, miss penalties, and total cache size using 
+the file gcc.trace. This file was selected for its substantial size and complexity, providing a robust
+dataset to mitigate and rule out outliers.
 
-Experiment Description:
-This experiment is to evaluate the effectiveness of two cache eviction policies, LRU and FIFO, across a diverse set of 
-memory trace files. The objective was to determine which eviction policy provides better overall cache performance in 
-terms of hit rates, miss penalties, and total execution cycles. 
+Our tests encompassed both direct-mapped and set-associative caches, with the latter further 
+divided into 2-way, 4-way, and 8-way set-associative configurations. For the direct-mapped cache analysis, 
+we explored variations in write policies, including write-allocate with write-back, write-allocate with 
+write-through, and no-write-allocate with write-back. Given that direct-mapped caches do not employ eviction 
+strategies, both FIFO and LRU replacement policies yielded the same outcomes for these tests.
 
-Experiment Result in LRU:
-1. gcc.trace
+For the set-associative caches, we assessed performance impacts under different replacement 
+policies (LRU and FIFO) and write policies (write-allocate and write-back, write-allocate and write-through, 
+no-write-allocate and write-back). This maintains that there is only one variable change at a time to 
+control variables.
+
+When comparing different results across the tests, we have found that write-allocate combined with 
+write-back policy consistently resulted in lower total cycle counts compared to the alternatives, indicating 
+superior efficiency in handling writes to the cache. In addition, increasing the level of associativity (number of ways) 
+tends to reduce total cycle counts, supporting the premise that higher associativity can enhance cache 
+performance by reducing conflict misses. However, it's important to note that while increased associativity 
+can lower cycle counts by improving hit rates, it also introduces greater hardware complexity and potential 
+access time penalties due to more extensive search and comparison operations within a set. The comparison 
+between LRU and FIFO demonstrated that LRU typically results in fewer total cycles, suggesting it is more 
+effective at managing cache evictions to preserve useful data.
+
+In conclusion, the optimal cache configuration for achieving the best overall effectiveness in our tests, 
+characterized by reduced cycle counts and improved performance, was found with higher associativity levels, 
+employing a write-allocate plus write-back policy, and utilizing the LRU replacement strategy.
+
+Direct Mapping
+FIFO and LRU yields the same result here since direct mapping does not use eviction.
+write-allocate and write-back
+Total loads: 318197
+Total stores: 197486
+Load hits: 298863
+Load misses: 19334
+Store hits: 185202
+Store misses: 12284
+Total cycles: 20280865
+
+write-allocate and write-through
+Total loads: 318197
+Total stores: 197486
+Load hits: 298863
+Load misses: 19334
+Store hits: 185202
+Store misses: 12284
+Total cycles: 31466263
+
+no-write-allocate and write-back
+Total loads: 318197
+Total stores: 197486
+Load hits: 296251
+Load misses: 21946
+Store hits: 158894
+Store misses: 38592
+Total cycles: 28823251
+___________________________________________________________________
+
+Set-Associative Caches:
+
+With LRU
+2-way set-associative cache:
+write-allocate and write-back
+Total loads: 318197
+Total stores: 197486
+Load hits: 313059
+Load misses: 5138
+Store hits: 187779
+Store misses: 9707
+Total cycles: 10704438
+
+write-allocate and write-through
+Total loads: 318197
+Total stores: 197486
+Load hits: 313059
+Load misses: 5138
+Store hits: 187779
+Store misses: 9707
+Total cycles: 25028959
+
+no-write-allocate and write-through
+Total loads: 318197
+Total stores: 197486
+Load hits: 310059
+Load misses: 8138
+Store hits: 163941
+Store misses: 33545
+Total cycles: 23313859
+______________________________________
+
+4-way set-associative cache:
+write-allocate and write-back
 Total loads: 318197
 Total stores: 197486
 Load hits: 314798
@@ -25,62 +109,87 @@ Store hits: 188250
 Store misses: 9236
 Total cycles: 9331848
 
-2. read01.trace
-Total loads: 5
-Total stores: 0
-Load hits: 2
-Load misses: 3
-Store hits: 0
-Store misses: 0
-Total cycles: 1202
-3. read02.trace
-Total loads: 10
-Total stores: 0
-Load hits: 9
-Load misses: 1
-Store hits: 0
-Store misses: 0
-Total cycles: 409
+write-allocate and write-through
+Total loads: 318197
+Total stores: 197486
+Load hits: 314798
+Load misses: 3399
+Store hits: 188250
+Store misses: 9236
+Total cycles: 24193798
 
-4. read03.trace
-Total loads: 9
-Total stores: 0
-Load hits: 5
-Load misses: 4
-Store hits: 0
-Store misses: 0
-Total cycles: 1605
+no-write-allocate and write-through
+Total loads: 318197
+Total stores: 197486
+Load hits: 311613
+Load misses: 6584
+Store hits: 164819
+Store misses: 32667
+Total cycles: 22693813
+______________________________________
 
-5. swim.trace
-Total loads: 220668
-Total stores: 82525
-Load hits: 219507
-Load misses: 1161
-Store hits: 71956
-Store misses: 10569
-Total cycles: 8997863
+8-way set-associative cache:
+write-allocate and write-back
+Total loads: 318197
+Total stores: 197486
+Load hits: 315261
+Load misses: 2936
+Store hits: 188513
+Store misses: 8973
+Total cycles: 8550574
 
-6. write01.trace
-Total loads: 0
-Total stores: 5
-Load hits: 0
-Load misses: 0
-Store hits: 2
-Store misses: 3
-Total cycles: 1202
+write-allocate and write-through
+Total loads: 318197
+Total stores: 197486
+Load hits: 315261
+Load misses: 2936
+Store hits: 188513
+Store misses: 8973
+Total cycles: 23930161
 
-7. write02.trace
-Total loads: 0
-Total stores: 10
-Load hits: 0
-Load misses: 0
-Store hits: 9
-Store misses: 1
-Total cycles: 409
+no-write-allocate and write-through
+Total loads: 318197
+Total stores: 197486
+Load hits: 311937
+Load misses: 6260
+Store hits: 165155
+Store misses: 32331
+Total cycles: 22564537
+______________________________________
+___________________________________________________
 
+With FIFO
+2-way set-associative cache:
+write-allocate and write-back
+Total loads: 318197
+Total stores: 197486
+Load hits: 312298
+Load misses: 5899
+Store hits: 187483
+Store misses: 10003
+Total cycles: 11367381
 
-Experiment Result in FIFO:
-1. gcc.trace
+write-allocate and write-through
+Total loads: 318197
+Total stores: 197486
+Load hits: 312298
+Load misses: 5899
+Store hits: 187483
+Store misses: 10003
+Total cycles: 25421398
+
+no-write-allocate and write-through
+Total loads: 318197
+Total stores: 197486
+Load hits: 309320
+Load misses: 8877
+Store hits: 162878
+Store misses: 34608
+Total cycles: 23608720
+______________________________________
+
+4-way set-associative cache:
+write-allocate and write-back
 Total loads: 318197
 Total stores: 197486
 Load hits: 314171
@@ -89,70 +198,52 @@ Store hits: 188047
 Store misses: 9439
 Total cycles: 9831818
 
-2. read01.trace
-Total loads: 5
-Total stores: 0
-Load hits: 2
-Load misses: 3
-Store hits: 0
-Store misses: 0
-Total cycles: 1202
+write-allocate and write-through
+Total loads: 318197
+Total stores: 197486
+Load hits: 314171
+Load misses: 4026
+Store hits: 188047
+Store misses: 9439
+Total cycles: 24504871
 
-3. read02.trace
-Total loads: 10
-Total stores: 0
-Load hits: 9
-Load misses: 1
-Store hits: 0
-Store misses: 0
-Total cycles: 409
+no-write-allocate and write-through
+Total loads: 318197
+Total stores: 197486
+Load hits: 311017
+Load misses: 7180
+Store hits: 163705
+Store misses: 33781
+Total cycles: 22931617
+______________________________________
 
-4. read03.trace
-Total loads: 9
-Total stores: 0
-Load hits: 5
-Load misses: 4
-Store hits: 0
-Store misses: 0
-Total cycles: 1605
+8-way set-associative cache:
+write-allocate and write-back
+Total loads: 318197
+Total stores: 197486
+Load hits: 314928
+Load misses: 3269
+Store hits: 188417
+Store misses: 9069
+Total cycles: 8817745
 
-5. swim.trace
-Total loads: 220668
-Total stores: 82525
-Load hits: 218357
-Load misses: 2311
-Store hits: 71787
-Store misses: 10738
-Total cycles: 9642544
+write-allocate and write-through
+Total loads: 318197
+Total stores: 197486
+Load hits: 314928
+Load misses: 3269
+Store hits: 188417
+Store misses: 9069
+Total cycles: 24091828
 
-6. write01.trace
-Total loads: 0
-Total stores: 5
-Load hits: 0
-Load misses: 0
-Store hits: 2
-Store misses: 3
-Total cycles: 1202
-
-7. write02.trace
-Total loads: 0
-Total stores: 10
-Load hits: 0
-Load misses: 0
-Store hits: 9
-Store misses: 1
-Total cycles: 409
-
-
-Analysis:
-LRU generally outperforms FIFO in complex traces like gcc.trace and swim.trace, evidenced by higher load hits and lower total cycles. 
-This suggests LRU's effectiveness in managing temporal locality in access patterns. But for simpler traces(like read01 and others), 
-the difference between LRU and FIFO is minimal, indicating that both policies perform comparably under straightforward access patterns.
-Load operations exhibit high hit rates under both policies across all traces, indicating efficient data caching. Store operations, however, 
-show more variability, with a noticeable number of misses in complex traces, suggesting potential areas for optimization in write policies.
-The total cycles metric, indicative of cache efficiency, favors LRU for complex traces due to its ability to minimize unnecessary cache 
-replacements, thereby enhancing performance.
-
-Summary:
-LRU slightly edges out FIFO in handling complex memory access patterns, as demonstrated in gcc.trace and swim.trace, by improving hit rates 
-and reducing total cycles. For less complex workloads, both LRU and FIFO are viable, with negligible performance differences.
+no-write-allocate and write-through
+Total loads: 318197
+Total stores: 197486
+Load hits: 311649
+Load misses: 6548
+Store hits: 164824
+Store misses: 32662
+Total cycles: 22679449
+______________________________________
+___________________________________________________
+___________________________________________________________________
