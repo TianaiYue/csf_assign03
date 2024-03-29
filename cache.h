@@ -59,6 +59,7 @@ void read_from_cache(Cache& cache, uint32_t address);
 void write_to_cache(Cache& cache, uint32_t address);
 void read_inputs_from_stdin(Cache& cache);
 void print_summary(const Cache& cache);
+void print_properties(const Cache& cache);
 bool is_power_of_two(int x);
 void validate_parameters(int num_sets, int num_bytes_per_block, bool write_allocate, bool write_back);
 

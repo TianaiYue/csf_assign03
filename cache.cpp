@@ -288,6 +288,38 @@ void print_summary(const Cache& cache) {
 }
 
 /*
+ * Prints the cache properties including Hit Rates, Miss Penalties, Average Access Time, and Total Cache Size (including overhead).
+ *
+ * Parameters:
+ *   cache - The cache for which to print the summary.
+ */
+void print_properties(const Cache& cache) {
+    int total_accesses = cache.total_loads + cache.total_stores;
+    int total_hits = cache.load_hits + cache.store_hits;
+    double hit_rates = static_cast<double>(total_hits) / total_accesses;
+    double miss_rates = 1 - hit_rates;
+    int miss_penalties = (cache.total_cycles / 4) * 100;
+    double average_access = 1 * hit_rates + miss_penalties * miss_rates;
+
+    int address_bits = 32;
+    int offset_bits = static_cast<int>(log2(cache.num_bytes_per_block));
+    int index_bits = static_cast<int>(log2(cache.sets.size()));
+    int tag_bits = address_bits - offset_bits - index_bits;
+
+    int overhead_per_block = 1 + 1 + tag_bits;
+    int total_overhead = cache.sets.size() * cache.blocks_per_set * overhead_per_block;
+    int total_cache_size = cache.sets.size() * cache.blocks_per_set * cache.num_bytes_per_block + total_overhead;
+
+    cout << endl;
+    cout << "Cache Properties:" << endl;
+    cout << "Hit Rates: " << hit_rates << endl;
+    cout << "Miss Penalties: " << miss_penalties << " cycles" << endl;
+    cout << "Average Access Time: " << average_access << " cycles" << endl;
+    cout << "Total Cache Size (including overhead): " << total_cache_size << " bits" << endl;
+}
+
+
+/*
  * Checks if a number is a power of two, used for validating cache configuration parameters.
  *
  * Parameters:

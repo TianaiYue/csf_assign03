@@ -48,5 +48,6 @@ int main(int argc, char *argv[]) {
     // process memory accesses and output summary
     read_inputs_from_stdin(my_cache);
     print_summary(my_cache);
+    print_properties(my_cache);
     return 0;
 }
