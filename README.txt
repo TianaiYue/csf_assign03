@@ -277,6 +277,43 @@ ______________________________________
 ___________________________________________________
 ___________________________________________________________________
 
+Fully Associative
+./csim 1 64 4 no-write-allocate write-through lru < traces/gcc.trace
+Total cycles: 23820877
+Hit Rate: 82.9556%
+Miss Rate: 17.0444%
+Miss Penalty: 100 cycles
+Average Access Time: 17.8739 cycles
+Cache Associativity: 64
+Total Cache Size: 2048 bytes
+
+./csim 1 64 4 no-write-allocate write-through fifo < traces/gcc.trace
+Total cycles: 24909580
+Hit Rate: 79.8584%
+Miss Rate: 20.1416%
+Miss Penalty: 100 cycles
+Average Access Time: 20.9402 cycles
+Cache Associativity: 64
+Total Cache Size: 2048 bytes
+
+./csim 1 1 4 no-write-allocate write-through lru < traces/gcc.trace
+Total cycles: 50539096
+Hit Rate: 5.16655%
+Miss Rate: 94.8335%
+Miss Penalty: 100 cycles
+Average Access Time: 94.8851 cycles
+Cache Associativity: 1
+Total Cache Size: 32 bytes
+
+./csim 1 1 4 no-write-allocate write-through fifo < traces/gcc.trace
+Total cycles: 50539096
+Hit Rate: 5.16655%
+Miss Rate: 94.8335%
+Miss Penalty: 100 cycles
+Average Access Time: 94.8851 cycles
+Cache Associativity: 1
+Total Cache Size: 32 bytes
+
 Number of sets in the cache: 256 
 number of bytes in each block: 4
 
