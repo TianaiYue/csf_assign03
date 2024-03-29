@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
     // process memory accesses and output summary
     read_inputs_from_stdin(my_cache);
     print_summary(my_cache);
-    print_cache_performance(my_cache, num_blocks_per_set);
+    // print_cache_performance(my_cache, num_blocks_per_set);
 
     return 0;
 }
