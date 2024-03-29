@@ -61,5 +61,6 @@ void read_inputs_from_stdin(Cache& cache);
 void print_summary(const Cache& cache);
 bool is_power_of_two(int x);
 void validate_parameters(int num_sets, int num_bytes_per_block, bool write_allocate, bool write_back);
+void printCachePerformance(const Cache& cache, int num_blocks_per_set);
 
 #endif

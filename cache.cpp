@@ -272,22 +272,6 @@ void read_inputs_from_stdin(Cache& cache) {
 }
 
 /*
- * Prints summary statistics to standard output.
- *
- * Parameters:
- *   cache - The cache for which to print the summary.
- */
-void print_summary(const Cache& cache) {
-    cout << "Total loads: " << cache.total_loads << endl;
-    cout << "Total stores: " << cache.total_stores << endl;
-    cout << "Load hits: " << cache.load_hits << endl;
-    cout << "Load misses: " << cache.load_misses << endl;
-    cout << "Store hits: " << cache.store_hits << endl;
-    cout << "Store misses: " << cache.store_misses << endl;
-    cout << "Total cycles: " << cache.total_cycles << endl;
-}
-
-/*
  * Checks if a number is a power of two, used for validating cache configuration parameters.
  *
  * Parameters:
@@ -327,4 +311,39 @@ void validate_parameters(int num_sets, int num_bytes_per_block, bool write_alloc
         }
         exit(EXIT_FAILURE);
     }
+}
+
+/*
+ * Prints summary statistics to standard output.
+ *
+ * Parameters:
+ *   cache - The cache for which to print the summary.
+ */
+void print_summary(const Cache& cache) {
+    cout << "Total loads: " << cache.total_loads << endl;
+    cout << "Total stores: " << cache.total_stores << endl;
+    cout << "Load hits: " << cache.load_hits << endl;
+    cout << "Load misses: " << cache.load_misses << endl;
+    cout << "Store hits: " << cache.store_hits << endl;
+    cout << "Store misses: " << cache.store_misses << endl;
+    cout << "Total cycles: " << cache.total_cycles << endl;
+}
+
+
+void printCachePerformance(const Cache& cache, int num_blocks_per_set) {
+    int total_accesses = cache.total_loads + cache.total_stores;
+    int total_hits = cache.load_hits + cache.store_hits;
+    double hitRate = static_cast<double>(total_hits) / total_accesses;
+    double missRate = 1 - hitRate;
+    int missPenalty = (cache.num_bytes_per_block / 4) * 100;
+    double averageAccessTime = 1 * hitRate + missPenalty * missRate;
+    int totalCacheSize = num_blocks_per_set * cache.num_bytes_per_block * 8;
+
+    std::cout << "" << std::endl;
+    std::cout << "Hit Rate: " << hitRate * 100 << "%" << std::endl;
+    std::cout << "Miss Rate: " << missRate * 100 << "%" << std::endl;
+    std::cout << "Miss Penalty: " << missPenalty << " cycles" << std::endl;
+    std::cout << "Average Access Time: " << averageAccessTime << " cycles" << std::endl;
+    std::cout << "Cache Associativity: " << num_blocks_per_set << std::endl;
+    std::cout << "Total Cache Size: " << totalCacheSize << " bytes" << std::endl;
 }
