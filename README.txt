@@ -7,36 +7,41 @@ Cassie mainly implemented LRU, and Tiana mainly implemented FIFO. The rest is sp
 Both Cassie and Tianai did relatively equal amounts of work and effort.
 
 Best Cache Experiment:
+Result: We think that the optimal cache configuration for achieving the best overall effectiveness 
+with 512 2 8 write-allocate write-back lru.
+
 To identify the cache configuration offering the highest overall effectiveness, we conducted a series 
-of tests focusing on different aspects such as hit rates, miss penalties, and total cache size using 
-the file gcc.trace. This file was selected for its substantial size and complexity, providing a robust
-dataset to mitigate and rule out outliers.
+of tests focusing on different aspects such as hit rates, miss penalties, total cache size, average 
+access time and total cycles using the file gcc.trace. This file was selected for its substantial 
+size and complexity, providing a robust dataset to mitigate and rule out outliers.
 
-Our tests encompassed both direct-mapped and set-associative caches, with the latter further 
-divided into 2-way, 4-way, and 8-way set-associative configurations. For the direct-mapped cache analysis, 
-we explored variations in write policies, including write-allocate with write-back, write-allocate with 
-write-through, and no-write-allocate with write-back. Given that direct-mapped caches do not employ eviction 
-strategies, both FIFO and LRU replacement policies yielded the same outcomes for these tests.
+Our tests encompassed both direct-mapped and set-associative caches(2-way, 4-way, and 8-way set-associative 
+configurations), coupled with variations in write policies, including write-allocate with write-back, 
+write-allocate with write-through, and no-write-allocate with write-back, also coupled with eviction strategies 
+between both FIFO and LRU.
 
-For the set-associative caches, we assessed performance impacts under different replacement 
-policies (LRU and FIFO) and write policies (write-allocate and write-back, write-allocate and write-through, 
-no-write-allocate and write-back). This maintains that there is only one variable change at a time to 
-control variables.
+With all other variables held equal, we preformed the below tests to find the optimal cache configuration:
+During our tests, we made sure that there is only one variable change at a time to control variables.
+We compared number of sets in cache between 256 and 512 and found that by increasing the number of sets
+the hit rate increases, total cycle count decreases and average access time decreases.
+We compared different ways of set-associative and found that by increasing the number of sets
+the hit rate increases, total cycle count decreases and average access time decreases, but the cache size
+also increases, so we chose to have a relatively small set-associative of 2 so that less hardware is needed
+to preform a relatively same amount of hit rate, total cycle count and average access time.
+We compared different number of bytes in block, and found that by increasing the number of sets
+the hit rate increases, total cycle count decreases and average access time decreases, but the cache size
+also increases, so we chose to have 8 bytes per block so that less hardware is needed to preform a 
+relatively same amount of hit rate, total cycle count and average access time.
+We compared different write policies and found that write-allocate with write-back yields higher hit rate,
+smaller total cycle count and less average access time.
+We compared LRU to FIFO, and concluded that LRU yields a higher hit rate, less total cycle count and less
+average access time.
 
-When comparing different results across the tests, we have found that write-allocate combined with 
-write-back policy consistently resulted in lower total cycle counts compared to the alternatives, indicating 
-superior efficiency in handling writes to the cache. In addition, increasing the level of associativity (number of ways) 
-tends to reduce total cycle counts, supporting the premise that higher associativity can enhance cache 
-performance by reducing conflict misses. However, it's important to note that while increased associativity 
-can lower cycle counts by improving hit rates, it also introduces greater hardware complexity and potential 
-access time penalties due to more extensive search and comparison operations within a set. The comparison 
-between LRU and FIFO demonstrated that LRU typically results in fewer total cycles, suggesting it is more 
-effective at managing cache evictions to preserve useful data.
+Taking into account of hit rates, miss penalties, total cache size, average access time and total cycles and
+also concidering a smaller total cache size, we concluded that the combination of 512 2 8 write-allocate write-back lru
+is an optimal cache configuration.
 
-In conclusion, the optimal cache configuration for achieving the best overall effectiveness in our tests, 
-characterized by reduced cycle counts and improved performance, was found with higher associativity levels, 
-employing a write-allocate plus write-back policy, and utilizing the LRU replacement strategy.
-
+Tests preform:
 
 Number of sets in the cache: 256 
 number of bytes in each block: 16
