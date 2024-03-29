@@ -247,3 +247,129 @@ Total cycles: 22679449
 ______________________________________
 ___________________________________________________
 ___________________________________________________________________
+
+
+Set-Associative Caches:
+
+With LRU
+2-way set-associative cache:
+write-allocate and write-back
+Hit Rates: 0.971213
+Miss Penalties: 267610900 cycles
+Average Access Time: 7.70373e+06 cycles
+Total Cache Size (including overhead): 19456 bits
+
+write-allocate and write-through
+Hit Rates: 0.971213
+Miss Penalties: 625723900 cycles
+Average Access Time: 1.80128e+07 cycles
+Total Cache Size (including overhead): 19456 bits
+
+no-write-allocate and write-through
+Hit Rates: 0.919169
+Miss Penalties: 582846400 cycles
+Average Access Time: 4.71119e+07 cycles
+Total Cache Size (including overhead): 19456 bits
+______________________________________
+
+4-way set-associative cache:
+write-allocate and write-back
+Hit Rates: 0.975499
+Miss Penalties: 233296200 cycles
+Average Access Time: 5.7161e+06 cycles
+Total Cache Size (including overhead): 38912 bits
+
+write-allocate and write-through
+Hit Rates: 0.975499
+Miss Penalties: 604844900 cycles
+Average Access Time: 1.48196e+07 cycles
+Total Cache Size (including overhead): 38912 bits
+
+no-write-allocate and write-through
+Hit Rates: 0.923885
+Miss Penalties: 567345300 cycles
+Average Access Time: 4.31833e+07 cycles
+Total Cache Size (including overhead): 38912 bits
+______________________________________
+
+8-way set-associative cache:
+write-allocate and write-back
+Hit Rates: 0.976906
+Miss Penalties: 213764300 cycles
+Average Access Time: 4.9366e+06 cycles
+Total Cache Size (including overhead): 77824 bits
+
+write-allocate and write-through
+Hit Rates: 0.976906
+Miss Penalties: 598254000 cycles
+Average Access Time: 1.38159e+07 cycles
+Total Cache Size (including overhead): 77824 bits
+
+no-write-allocate and write-through
+Hit Rates: 0.925165
+Miss Penalties: 564113400 cycles
+Average Access Time: 4.22153e+07 cycles
+Total Cache Size (including overhead): 77824 bits
+______________________________________
+___________________________________________________
+
+With FIFO
+2-way set-associative cache:
+write-allocate and write-back
+Hit Rates: 0.969163
+Miss Penalties: 284184500 cycles
+Average Access Time: 8.76333e+06 cycles
+Total Cache Size (including overhead): 19456 bits
+
+write-allocate and write-through
+Hit Rates: 0.969163
+Miss Penalties: 635534900 cycles
+Average Access Time: 1.95978e+07 cycles
+Total Cache Size (including overhead): 19456 bits
+
+no-write-allocate and write-through
+Hit Rates: 0.915675
+Miss Penalties: 590218000 cycles
+Average Access Time: 4.97702e+07 cycles
+Total Cache Size (including overhead): 19456 bits
+______________________________________
+
+4-way set-associative cache:
+write-allocate and write-back
+Hit Rates: 0.973889
+Miss Penalties: 245795400 cycles
+Average Access Time: 6.41797e+06 cycles
+Total Cache Size (including overhead): 38912 bits
+
+write-allocate and write-through
+Hit Rates: 0.973889
+Miss Penalties: 612621700 cycles
+Average Access Time: 1.59962e+07 cycles
+Total Cache Size (including overhead): 38912 bits
+
+no-write-allocate and write-through
+Hit Rates: 0.920569
+Miss Penalties: 573290400 cycles
+Average Access Time: 4.55368e+07 cycles
+Total Cache Size (including overhead): 38912 bits
+______________________________________
+
+8-way set-associative cache:
+write-allocate and write-back
+Hit Rates: 0.976074
+Miss Penalties: 220443600 cycles
+Average Access Time: 5.27424e+06 cycles
+Total Cache Size (including overhead): 77824 bits
+
+write-allocate and write-through
+Hit Rates: 0.976074
+Miss Penalties: 602295700 cycles
+Average Access Time: 1.44103e+07 cycles
+Total Cache Size (including overhead): 77824 bits
+
+no-write-allocate and write-through
+Hit Rates: 0.923965
+Miss Penalties: 566986200 cycles
+Average Access Time: 4.31108e+07 cycles
+Total Cache Size (including overhead): 77824 bits
+______________________________________
