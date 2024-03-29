@@ -329,21 +329,32 @@ void print_summary(const Cache& cache) {
     cout << "Total cycles: " << cache.total_cycles << endl;
 }
 
-
-void printCachePerformance(const Cache& cache, int num_blocks_per_set) {
+/*
+ * Prints summary statistics of the cache's preformance.
+ *
+ * Parameters:
+ *   cache - The cache for which to print the summary.
+ *   num_blocks_per_set - the number of blocks in a set, 
+ *                        which is the set associativity.
+ *
+ */
+void print_cache_performance(const Cache& cache, int num_blocks_per_set) {
     int total_accesses = cache.total_loads + cache.total_stores;
     int total_hits = cache.load_hits + cache.store_hits;
-    double hitRate = static_cast<double>(total_hits) / total_accesses;
-    double missRate = 1 - hitRate;
-    int missPenalty = (cache.num_bytes_per_block / 4) * 100;
-    double averageAccessTime = 1 * hitRate + missPenalty * missRate;
-    int totalCacheSize = num_blocks_per_set * cache.num_bytes_per_block * 8;
+    double hitRate = (static_cast<double>(total_hits) / total_accesses) * 100;
+    std::cout << "Hit Rate: " << hitRate << "%" << std::endl;
 
-    std::cout << "" << std::endl;
-    std::cout << "Hit Rate: " << hitRate * 100 << "%" << std::endl;
-    std::cout << "Miss Rate: " << missRate * 100 << "%" << std::endl;
+    double missRate = 100 - hitRate;
+    std::cout << "Miss Rate: " << missRate << "%" << std::endl;
+
+    int missPenalty = (cache.num_bytes_per_block / 4) * 100;
     std::cout << "Miss Penalty: " << missPenalty << " cycles" << std::endl;
+
+    double averageAccessTime = (1 * hitRate + missPenalty * missRate) / 100;
     std::cout << "Average Access Time: " << averageAccessTime << " cycles" << std::endl;
+
     std::cout << "Cache Associativity: " << num_blocks_per_set << std::endl;
+    
+    int totalCacheSize = num_blocks_per_set * cache.num_bytes_per_block * 8;
     std::cout << "Total Cache Size: " << totalCacheSize << " bytes" << std::endl;
 }

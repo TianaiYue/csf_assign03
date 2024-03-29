@@ -33,6 +33,7 @@ int main(int argc, char *argv[]) {
         cerr << "Not enough arguments." << endl;
         return 1;
     }
+
     // parse arguments and set up cache configuration
     int num_sets = stoi(argv[1]);
     int num_blocks_per_set = stoi(argv[2]);
@@ -40,15 +41,17 @@ int main(int argc, char *argv[]) {
     bool write_allocate = string(argv[4]) == "write-allocate";
     bool write_back = string(argv[5]) == "write-back";
     string eviction_policy = argv[6];
+
     // validate parameters and initialize cache
     validate_parameters(num_sets, num_bytes_per_block, write_allocate, write_back);
     unsigned block_offset = round(log2(num_bytes_per_block));
     unsigned num_bits = round(log2(num_sets));
     Cache my_cache(num_sets, num_blocks_per_set, num_bytes_per_block, write_allocate, write_back, eviction_policy, block_offset, num_bits);
+
     // process memory accesses and output summary
     read_inputs_from_stdin(my_cache);
     print_summary(my_cache);
-    //printCachePerformance(my_cache, num_blocks_per_set);
+    print_cache_performance(my_cache, num_blocks_per_set);
 
     return 0;
 }
