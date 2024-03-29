@@ -30,7 +30,7 @@ using namespace std;
 int main(int argc, char *argv[]) {
     // check for correct number of arguments
     if (argc != 7) {
-        cerr << "Usage: " << argv[0] << " <num_sets> <blocks_per_set> <block_size> <write_allocate> <write_back> <eviction_policy>" << endl;
+        cerr << "Not enough arguments." << endl;
         return 1;
     }
     // parse arguments and set up cache configuration
@@ -48,6 +48,7 @@ int main(int argc, char *argv[]) {
     // process memory accesses and output summary
     read_inputs_from_stdin(my_cache);
     print_summary(my_cache);
-    print_properties(my_cache);
+    //printCachePerformance(my_cache, num_blocks_per_set);
+
     return 0;
 }
