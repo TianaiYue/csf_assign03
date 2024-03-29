@@ -17,8 +17,8 @@ size and complexity, providing a robust dataset to mitigate and rule out outlier
 
 Our tests encompassed both direct-mapped and set-associative caches(2-way, 4-way, and 8-way set-associative 
 configurations), coupled with variations in write policies, including write-allocate with write-back, 
-write-allocate with write-through, and no-write-allocate with write-back, also coupled with eviction strategies 
-between both FIFO and LRU.
+write-allocate with write-through, and no-write-allocate with write-back, also coupled with eviction 
+strategies between both FIFO and LRU.
 
 With all other variables held equal, we preformed the below tests to find the optimal cache configuration:
 During our tests, we made sure that there is only one variable change at a time to control variables.
