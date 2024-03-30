@@ -5,45 +5,69 @@ Team members: Cassie Zhang xzhan304, Tianai Yue tyue4
 
 Cassie mainly implemented LRU, and Tiana mainly implemented FIFO. The rest is split amoung us.
 Both Cassie and Tianai did relatively equal amounts of work and effort.
+___________________________________________________________________
 
 Best Cache Experiment:
 
-Result: We chose a cache size of cache size of 16,384 bytes(16KB), and the best overall effectiveness
-is  
+Result: We chose a cache size of 16,384 bytes(16KB), and the best overall effectiveness
+is we obtained is 16 setw in the cache, 16 blocks in each set, 64 bytes in each block with write
+policy of write-allocate and write-back, with the eviction policy of lru.
+(16 16 64 write-allocate write-back lru)
 
 To identify the cache configuration offering the highest overall effectiveness, we conducted a series 
 of tests focusing on different aspects such as hit rates, miss penalties, total cache size, average 
 access time and total cycles using the file gcc.trace. This file was selected for its substantial 
-size and complexity, providing a robust dataset to mitigate and rule out outliers.
+size, providing a robust dataset to mitigate and rule out outliers and make the result more consistent.
 
-Our tests encompassed both direct-mapped and set-associative caches(2-way, 4-way, and 8-way set-associative 
-configurations), coupled with variations in write policies, including write-allocate with write-back, 
-write-allocate with write-through, and no-write-allocate with write-back, also coupled with eviction 
-strategies between both FIFO and LRU.
+We placed our tests in groups, and hold the total cache size constant while varying only one parameter
+at a time, adhering to a scientific method that ensures any observed differences in performance are 
+due to the variable being tested. Testing different aspects of cache performance provides a comprehensive 
+understanding of how different cache configurations affect overall system performance and allows us to 
+identifying the strengths and weaknesses in each setup.
 
-With all other variables held equal, we preformed the below tests to find the optimal cache configuration:
-During our tests, we made sure that there is only one variable change at a time to control variables.
-We compared number of sets in cache between 256 and 512 and found that by increasing the number of sets
-the hit rate increases, total cycle count decreases and average access time decreases.
-We compared different ways of set-associative and found that by increasing the number of sets
-the hit rate increases, total cycle count decreases and average access time decreases, but the cache size
-also increases, so we chose to have a relatively small set-associative of 2 so that less hardware is needed
-to preform a relatively same amount of hit rate, total cycle count and average access time.
-We compared different number of bytes in block, and found that by increasing the number of sets
-the hit rate increases, total cycle count decreases and average access time decreases, but the cache size
-also increases, so we chose to have 8 bytes per block so that less hardware is needed to preform a 
-relatively same amount of hit rate, total cycle count and average access time.
-We compared different write policies and found that write-allocate with write-back yields higher hit rate,
-smaller total cycle count and less average access time.
-We compared LRU to FIFO, and concluded that LRU yields a higher hit rate, less total cycle count and less
-average access time.
+We started out with Direct Mapping. We made all other variables stay the same while switching around the
+different writing policies. As our test results show below, it is evident that the write policy of 
+write-allocate and write-back yields lower cycle counts, higher hit rates and lower average access time
+than other write policies.
+A total cycle count of 22603961 compared to 34633897 and 31211827.
+A hit rate of 98.1923% compared to 98.1923% and 93.144%.
+An average access time of 29.9051 cycles compared to 29.9051 cycles and 110.627 cycles.
 
-Taking into account of hit rates, miss penalties, total cache size, average access time and total cycles and
-also concidering a smaller total cache size, we concluded that the combination of 512 2 8 write-allocate write-back lru
-is an optimal cache configuration.
+We then tested with Fully Associative cache with different eviction policies. As our test results show 
+below, it is evident that the eviction policy of lru yields slightly better performance than fifo 
+everytime, with lower cycle counts, higher hit rates and lower average access time.
+Example of one set of tests:
+A total cycle count of 12415250 compared to 13958570.
+A hit rate of 99.1404% compared to 99.0085%.
+An average access time of 14.7456 cycles compared to 16.8541 cycles. (One of the tests)
+
+We then tested with different Set Associative caches, such as 2/4/8/16/32-way set associative. We found that
+as the number of blocks in each set increases, there is a decrease in cycle counts, average access time,
+an increase in hit rates and miss penalties . Thus Fully Associative cache is best when testing in this controled group.
+Fully Associative cache compared to 2-way set associative cache:
+A total cycle count of 12415250 compared to 14809325.
+A hit rate of 99.1404% compared to 98.9222%.
+An average access time of 14.7456 cycles compared to 18.2339 cycles.
+However, we did note that the miss penalties goes down as the number blocks in each set increases.
+
+Lastly, we tested with different number of bytes in each block. We found that the combination of 1 64 256
+yields the highest hit rate, but with an average total cycle count and average access time compared to other
+combinations, and a higher miss penalty of 6400 cycles compared to a fully associative cache which only has
+1600 cycles.
+
+Taking into account of hit rates, miss penalties, total cache size, average access time and total cycles, we concluded 
+that the writing policy of write-allocate and write-back with the eviction policy of lru easily emerges as the better 
+policies for best overall effectiveness. The results show that Fully Associative cache is the best for higher hit rates, 
+but it results in a higher miss penalty, average total cycle count and average access time compared to 
+Set-Associativity caches. Implementing a fully associative cache might also not be very feasible in reality, especially
+for larger caches, since it requires more complex hardware to search the entire cache to find a match for the requested 
+memory address. 
+
+Thus, taking all components into account, we think that the cache configuration of 16 16 64 write-allocate write-back lru 
+yields the best overall effectiveness.
+___________________________________________________________________
 
 Tests preform:
-
 Direct Mapping
 FIFO and LRU yields the same result here since direct mapping does not use eviction.
 ./csim 256 1 64 write-allocate write-back lru < traces/gcc.trace
@@ -264,9 +288,6 @@ Miss Rate: 2.40652%
 Miss Penalty: 400 cycles
 Average Access Time: 10.602 cycles
 
-
-From these tests we can see that the best the performance of the cache, 
-is characterized by 1 64 256 write-allocate write-back lru, compared to
-other combinations, this has a lower total cycle counts, higher hit rate, 
-and less average access time.
+From these tests we can see that the combination of 1 64 256 
+write-allocate write-back lru yields the highest hit rate.
 ___________________________________________________________________
