@@ -5,917 +5,289 @@ Team members: Cassie Zhang xzhan304, Tianai Yue tyue4
 
 Cassie mainly implemented LRU, and Tiana mainly implemented FIFO. The rest is split amoung us.
 Both Cassie and Tianai did relatively equal amounts of work and effort.
+___________________________________________________________________
 
 Best Cache Experiment:
-Result: We think that the optimal cache configuration for achieving the best overall effectiveness 
-with 512 2 8 write-allocate write-back lru.
+
+Result: We chose a cache size of 16,384 bytes(16KB), and the best overall effectiveness
+is we obtained is 16 setw in the cache, 16 blocks in each set, 64 bytes in each block with write
+policy of write-allocate and write-back, with the eviction policy of lru.
+(16 16 64 write-allocate write-back lru)
 
 To identify the cache configuration offering the highest overall effectiveness, we conducted a series 
 of tests focusing on different aspects such as hit rates, miss penalties, total cache size, average 
 access time and total cycles using the file gcc.trace. This file was selected for its substantial 
-size and complexity, providing a robust dataset to mitigate and rule out outliers.
+size, providing a robust dataset to mitigate and rule out outliers and make the result more consistent.
 
-Our tests encompassed both direct-mapped and set-associative caches(2-way, 4-way, and 8-way set-associative 
-configurations), coupled with variations in write policies, including write-allocate with write-back, 
-write-allocate with write-through, and no-write-allocate with write-back, also coupled with eviction 
-strategies between both FIFO and LRU.
+We placed our tests in groups, and hold the total cache size constant while varying only one parameter
+at a time, adhering to a scientific method that ensures any observed differences in performance are 
+due to the variable being tested. Testing different aspects of cache performance provides a comprehensive 
+understanding of how different cache configurations affect overall system performance and allows us to 
+identifying the strengths and weaknesses in each setup.
 
-With all other variables held equal, we preformed the below tests to find the optimal cache configuration:
-During our tests, we made sure that there is only one variable change at a time to control variables.
-We compared number of sets in cache between 256 and 512 and found that by increasing the number of sets
-the hit rate increases, total cycle count decreases and average access time decreases.
-We compared different ways of set-associative and found that by increasing the number of sets
-the hit rate increases, total cycle count decreases and average access time decreases, but the cache size
-also increases, so we chose to have a relatively small set-associative of 2 so that less hardware is needed
-to preform a relatively same amount of hit rate, total cycle count and average access time.
-We compared different number of bytes in block, and found that by increasing the number of sets
-the hit rate increases, total cycle count decreases and average access time decreases, but the cache size
-also increases, so we chose to have 8 bytes per block so that less hardware is needed to preform a 
-relatively same amount of hit rate, total cycle count and average access time.
-We compared different write policies and found that write-allocate with write-back yields higher hit rate,
-smaller total cycle count and less average access time.
-In our cache simulator's exploration, we rigorously examined FIFO and LRU eviction policies, observing that LRU 
-typically enhances performance by adapting to access patterns. However, an insightful aspect of our development 
-was addressing situations where the eviction policy doesn't align with FIFO or LRU. Initially, our simulator 
-defaulted to a FIFO-like approach in such scenarios, inadvertently overlooking the potential for misconfiguration 
-or unrecognized policies. Recognizing this, we implemented explicit error handling to ensure the simulator's 
-behavior remains transparent and predictable, even when faced with undefined eviction policies. This improvement 
-not only bolstered the simulator's robustness but also underscored the significance of handling edge cases and user 
-inputs meticulously, ensuring the tool's reliability and ease of use.
+We started out with Direct Mapping. We made all other variables stay the same while switching around the
+different writing policies. As our test results show below, it is evident that the write policy of 
+write-allocate and write-back yields lower cycle counts, higher hit rates and lower average access time
+than other write policies.
+A total cycle count of 22603961 compared to 34633897 and 31211827.
+A hit rate of 98.1923% compared to 98.1923% and 93.144%.
+An average access time of 29.9051 cycles compared to 29.9051 cycles and 110.627 cycles.
 
-Taking into account of hit rates, miss penalties, total cache size, average access time and total cycles and
-also concidering a smaller total cache size, we concluded that the combination of 512 2 8 write-allocate write-back lru
-is an optimal cache configuration.
+We then tested with Fully Associative cache with different eviction policies. As our test results show 
+below, it is evident that the eviction policy of lru yields slightly better performance than fifo 
+everytime, with lower cycle counts, higher hit rates and lower average access time.
+Example of one set of tests:
+A total cycle count of 12415250 compared to 13958570.
+A hit rate of 99.1404% compared to 99.0085%.
+An average access time of 14.7456 cycles compared to 16.8541 cycles. (One of the tests)
+
+We then tested with different Set Associative caches, such as 2/4/8/16/32-way set associative. We found that
+as the number of blocks in each set increases, there is a decrease in cycle counts, average access time,
+an increase in hit rates and miss penalties . Thus Fully Associative cache is best when testing in this controled group.
+Fully Associative cache compared to 2-way set associative cache:
+A total cycle count of 12415250 compared to 14809325.
+A hit rate of 99.1404% compared to 98.9222%.
+An average access time of 14.7456 cycles compared to 18.2339 cycles.
+However, we did note that the miss penalties goes down as the number blocks in each set increases.
+
+Lastly, we tested with different number of bytes in each block. We found that the combination of 1 64 256
+yields the highest hit rate, but with an average total cycle count and average access time compared to other
+combinations, and a higher miss penalty of 6400 cycles compared to a fully associative cache which only has
+1600 cycles.
+
+Taking into account of hit rates, miss penalties, total cache size, average access time and total cycles, we concluded 
+that the writing policy of write-allocate and write-back with the eviction policy of lru easily emerges as the better 
+policies for best overall effectiveness. The results show that Fully Associative cache is the best for higher hit rates, 
+but it results in a higher miss penalty, average total cycle count and average access time compared to 
+Set-Associativity caches. Implementing a fully associative cache might also not be very feasible in reality, especially
+for larger caches, since it requires more complex hardware to search the entire cache to find a match for the requested 
+memory address. 
+
+Thus, taking all components into account, we think that the cache configuration of 16 16 64 write-allocate write-back lru 
+yields the best overall effectiveness.
+___________________________________________________________________
 
 Tests preform:
+Direct Mapping
+FIFO and LRU yields the same result here since direct mapping does not use eviction.
+./csim 256 1 64 write-allocate write-back lru < traces/gcc.trace
+Total cycles: 22603961
+Total Cache Size: 16384 bytes
+Cache Associativity: 1
+Hit Rate: 98.1923%
+Miss Rate: 1.8077%
+Miss Penalty: 1600 cycles
+Average Access Time: 29.9051 cycles
+
+./csim 256 1 64 write-allocate write-through lru < traces/gcc.trace
+Total cycles: 34633897
+Total Cache Size: 16384 bytes
+Cache Associativity: 1
+Hit Rate: 98.1923%
+Miss Rate: 1.8077%
+Miss Penalty: 1600 cycles
+Average Access Time: 29.9051 cycles
+
+./csim 256 1 64 no-write-allocate write-through lru < traces/gcc.trace
+Total cycles: 31211827
+Total Cache Size: 16384 bytes
+Cache Associativity: 1
+Hit Rate: 93.144%
+Miss Rate: 6.85596%
+Miss Penalty: 1600 cycles
+Average Access Time: 110.627 cycles
+
+From these tests we can see that "write-allocate write-back" have lower cycle counts and higher
+hit rates than "write-allocate write-through" and "no-write-allocate write-through".
+___________________________________________________________________
 
 Fully Associative
-./csim 1 64 4 no-write-allocate write-through lru < traces/gcc.trace
-Total cycles: 23820877
-Hit Rate: 82.9556%
-Miss Rate: 17.0444%
-Miss Penalty: 100 cycles
-Average Access Time: 17.8739 cycles
+./csim 1 256 64 write-allocate write-back lru < traces/gcc.trace
+Total cycles: 12415250
+Total Cache Size: 16384 bytes
+Cache Associativity: 256
+Hit Rate: 99.1404%
+Miss Rate: 0.859637%
+Miss Penalty: 1600 cycles
+Average Access Time: 14.7456 cycles
+
+./csim 1 256 64 write-allocate write-back fifo < traces/gcc.trace
+Total cycles: 13958570
+Total Cache Size: 16384 bytes
+Cache Associativity: 256
+Hit Rate: 99.0085%
+Miss Rate: 0.991501%
+Miss Penalty: 1600 cycles
+Average Access Time: 16.8541 cycles
+
+./csim 1 256 64 write-allocate write-through lru < traces/gcc.trace
+Total cycles: 26895883
+Total Cache Size: 16384 bytes
+Cache Associativity: 256
+Hit Rate: 99.1404%
+Miss Rate: 0.859637%
+Miss Penalty: 1600 cycles
+Average Access Time: 14.7456 cycles
+
+./csim 1 256 64 write-allocate write-through fifo < traces/gcc.trace
+Total cycles: 27972907
+Total Cache Size: 16384 bytes
+Cache Associativity: 256
+Hit Rate: 99.0085%
+Miss Rate: 0.991501%
+Miss Penalty: 1600 cycles
+Average Access Time: 16.8541 cycles
+
+./csim 1 256 64 no-write-allocate write-through lru < traces/gcc.trace
+Total cycles: 24715090
+Total Cache Size: 16384 bytes
+Cache Associativity: 256
+Hit Rate: 94.6834%
+Miss Rate: 5.31664%
+Miss Penalty: 1600 cycles
+Average Access Time: 86.013 cycles
+
+./csim 1 256 64 no-write-allocate write-through fifo < traces/gcc.trace
+Total cycles: 25600936
+Total Cache Size: 16384 bytes
+Cache Associativity: 256
+Hit Rate: 94.2963%
+Miss Rate: 5.7037%
+Miss Penalty: 1600 cycles
+Average Access Time: 92.2021 cycles
+
+Fully Associative
+./csim 1 256 64 write-allocate write-back lru < traces/gcc.trace
+Total cycles: 12415250
+Total Cache Size: 16384 bytes
+Cache Associativity: 256
+Hit Rate: 99.1404%
+Miss Rate: 0.859637%
+Miss Penalty: 1600 cycles
+Average Access Time: 14.7456 cycles
+
+From these tests we can see that "lru" has a smaller total cycle count, higher hit
+rate, and less average access time than "fifo".
+___________________________________________________________________
+Set-Associative Caches:
+2-way set-associative cache:
+./csim 128 2 64 write-allocate write-back lru < traces/gcc.trace
+Total cycles: 14809325
+Total Cache Size: 16384 bytes
+Cache Associativity: 2
+Hit Rate: 98.9222%
+Miss Rate: 1.07779%
+Miss Penalty: 1600 cycles
+Average Access Time: 18.2339 cycles
+
+4-way set-associative cache:
+./csim 64 4 64 write-allocate write-back lru < traces/gcc.trace
+Total cycles: 13045378
+Total Cache Size: 16384 bytes
+Cache Associativity: 4
+Hit Rate: 99.0876%
+Miss Rate: 0.912382%
+Miss Penalty: 1600 cycles
+Average Access Time: 15.589 cycles
+
+8-way set-associative cache:
+./csim 32 8 64 write-allocate write-back lru < traces/gcc.trace
+Total cycles: 12568778
+Total Cache Size: 16384 bytes
+Cache Associativity: 8
+Hit Rate: 99.1264%
+Miss Rate: 0.873599%
+Miss Penalty: 1600 cycles
+Average Access Time: 14.9688 cycles
+
+16-way set-associative cache:
+./csim 16 16 64 write-allocate write-back lru < traces/gcc.trace
+Total cycles: 12492015
+Total Cache Size: 16384 bytes
+Cache Associativity: 16
+Hit Rate: 99.1336%
+Miss Rate: 0.866424%
+Miss Penalty: 1600 cycles
+Average Access Time: 14.8541 cycles
+
+32-way set-associative cache:
+./csim 8 32 64 write-allocate write-back lru < traces/gcc.trace
+Total cycles: 12500016
+Total Cache Size: 16384 bytes
+Cache Associativity: 32
+Hit Rate: 99.1338%
+Miss Rate: 0.86623%
+Miss Penalty: 1600 cycles
+Average Access Time: 14.851 cycles
+
+From theses tests we can see that fully associative cache has
+the least total cycle count, the highest hit rate and the least
+average access time.
+___________________________________________________________________
+
+./csim 1 16 1024 write-allocate write-back lru < traces/gcc.trace
+Total cycles: 342572689
+Total Cache Size: 16384 bytes
+Cache Associativity: 16
+Hit Rate: 98.0232%
+Miss Rate: 1.9768%
+Miss Penalty: 25600 cycles
+Average Access Time: 507.04 cycles
+
+./csim 1 32 512 write-allocate write-back lru < traces/gcc.trace
+Total cycles: 82149295
+Total Cache Size: 16384 bytes
+Cache Associativity: 32
+Hit Rate: 99.0715%
+Miss Rate: 0.928477%
+Miss Penalty: 12800 cycles
+Average Access Time: 119.836 cycles
+
+./csim 1 64 256 write-allocate write-back lru < traces/gcc.trace
+Total cycles: 26605831
+Total Cache Size: 16384 bytes
 Cache Associativity: 64
-Total Cache Size: 2048 bytes
+Hit Rate: 99.4857%
+Miss Rate: 0.514269%
+Miss Penalty: 6400 cycles
+Average Access Time: 33.9081 cycles
 
-./csim 1 64 4 no-write-allocate write-through fifo < traces/gcc.trace
-Total cycles: 24909580
-Hit Rate: 79.8584%
-Miss Rate: 20.1416%
-Miss Penalty: 100 cycles
-Average Access Time: 20.9402 cycles
-Cache Associativity: 64
-Total Cache Size: 2048 bytes
+./csim 1 128 128 write-allocate write-back lru < traces/gcc.trace
+Total cycles: 16877315
+Total Cache Size: 16384 bytes
+Cache Associativity: 128
+Hit Rate: 99.3857%
+Miss Rate: 0.614331%
+Miss Penalty: 3200 cycles
+Average Access Time: 20.6524 cycles
 
-./csim 1 1 4 no-write-allocate write-through lru < traces/gcc.trace
-Total cycles: 50539096
-Hit Rate: 5.16655%
-Miss Rate: 94.8335%
-Miss Penalty: 100 cycles
-Average Access Time: 94.8851 cycles
-Cache Associativity: 1
-Total Cache Size: 32 bytes
+./csim 1 256 64 write-allocate write-back lru < traces/gcc.trace
+Total cycles: 12415250
+Total Cache Size: 16384 bytes
+Cache Associativity: 256
+Hit Rate: 99.1404%
+Miss Rate: 0.859637%
+Miss Penalty: 1600 cycles
+Average Access Time: 14.7456 cycles
 
-./csim 1 1 4 no-write-allocate write-through fifo < traces/gcc.trace
-Total cycles: 50539096
-Hit Rate: 5.16655%
-Miss Rate: 94.8335%
-Miss Penalty: 100 cycles
-Average Access Time: 94.8851 cycles
-Cache Associativity: 1
-Total Cache Size: 32 bytes
+./csim 1 512 32 write-allocate write-back lru < traces/gcc.trace
+Total cycles: 10337387
+Total Cache Size: 16384 bytes
+Cache Associativity: 512
+Hit Rate: 98.624%
+Miss Rate: 1.37604%
+Miss Penalty: 800 cycles
+Average Access Time: 11.9946 cycles
 
-Number of sets in the cache: 256 
-number of bytes in each block: 16
-
-Direct Mapping
-FIFO and LRU yields the same result here since direct mapping does not use eviction.
-write-allocate and write-back
-./csim 256 1 16 write-allocate write-back lru <traces/gcc.trace
-Total cycles: 20280865
-Hit Rate: 93.8687%
-Miss Rate: 6.13129%
+./csim 1 1024 16 write-allocate write-back lru < traces/gcc.trace
+Total cycles: 9214473
+Total Cache Size: 16384 bytes
+Cache Associativity: 1024
+Hit Rate: 97.5935%
+Miss Rate: 2.40652%
 Miss Penalty: 400 cycles
-Average Access Time: 25.4638 cycles
-Cache Associativity: 1
-Total Cache Size: 128 bytes
+Average Access Time: 10.602 cycles
 
-write-allocate and write-through
-./csim 256 1 16 write-allocate write-through lru <traces/gcc.trace
-Total cycles: 31466263
-Hit Rate: 93.8687%
-Miss Rate: 6.13129%
-Miss Penalty: 400 cycles
-Average Access Time: 25.4638 cycles
-Cache Associativity: 1
-Total Cache Size: 128 bytes
-
-no-write-allocate and write-back
-./csim 256 1 16 write-allocate write-back lru <traces/gcc.trace
-Total cycles: 20280865
-Hit Rate: 93.8687%
-Miss Rate: 6.13129%
-Miss Penalty: 400 cycles
-Average Access Time: 25.4638 cycles
-Cache Associativity: 1
-Total Cache Size: 128 bytes
+From these tests we can see that the combination of 1 64 256 
+write-allocate write-back lru yields the highest hit rate.
 ___________________________________________________________________
-
-Set-Associative Caches:
-
-With LRU
-2-way set-associative cache:
-write-allocate and write-back
-./csim 256 2 16 write-allocate write-back lru <traces/gcc.trace
-Total cycles: 10704438
-Hit Rate: 97.1213%
-Miss Rate: 2.87871%
-Miss Penalty: 400 cycles
-Average Access Time: 12.486 cycles
-Cache Associativity: 2
-Total Cache Size: 256 bytes
-
-write-allocate and write-through
-./csim 256 2 16 write-allocate write-through lru <traces/gcc.trace
-Total cycles: 25028959
-Hit Rate: 97.1213%
-Miss Rate: 2.87871%
-Miss Penalty: 400 cycles
-Average Access Time: 12.486 cycles
-Cache Associativity: 2
-Total Cache Size: 256 bytes
-
-no-write-allocate and write-through
-./csim 256 2 16 no-write-allocate write-through lru <traces/gcc.trace
-Total cycles: 23313859
-Hit Rate: 91.9169%
-Miss Rate: 8.08307%
-Miss Penalty: 400 cycles
-Average Access Time: 33.2514 cycles
-Cache Associativity: 2
-Total Cache Size: 256 bytes
-______________________________________
-
-4-way set-associative cache:
-write-allocate and write-back
-./csim 256 4 16 write-allocate write-back lru <traces/gcc.trace
-Total cycles: 9331848
-Hit Rate: 97.5499%
-Miss Rate: 2.45015%
-Miss Penalty: 400 cycles
-Average Access Time: 10.7761 cycles
-Cache Associativity: 4
-Total Cache Size: 512 bytes
-
-write-allocate and write-through
-./csim 256 4 16 write-allocate write-through lru <traces/gcc.trace
-Total cycles: 24193798
-Hit Rate: 97.5499%
-Miss Rate: 2.45015%
-Miss Penalty: 400 cycles
-Average Access Time: 10.7761 cycles
-Cache Associativity: 4
-
-no-write-allocate and write-through
-./csim 256 4 16 no-write-allocate write-through lru <traces/gcc.trace
-Total cycles: 22693813
-Hit Rate: 92.3885%
-Miss Rate: 7.61146%
-Miss Penalty: 400 cycles
-Average Access Time: 31.3697 cycles
-Cache Associativity: 4
-Total Cache Size: 512 bytes
-______________________________________
-
-8-way set-associative cache:
-write-allocate and write-back
-./csim 256 8 16 write-allocate write-back lru <traces/gcc.trace
-Total cycles: 8550574
-Hit Rate: 97.6906%
-Miss Rate: 2.30936%
-Miss Penalty: 400 cycles
-Average Access Time: 10.2144 cycles
-Cache Associativity: 8
-Total Cache Size: 1024 bytes
-
-write-allocate and write-through
-./csim 256 8 16 write-allocate write-through lru <traces/gcc.trace
-Total cycles: 23930161
-Hit Rate: 97.6906%
-Miss Rate: 2.30936%
-Miss Penalty: 400 cycles
-Average Access Time: 10.2144 cycles
-Cache Associativity: 8
-Total Cache Size: 1024 bytes
-
-no-write-allocate and write-through
-./csim 256 8 16 no-write-allocate write-through lru <traces/gcc.trace
-Total cycles: 22564537
-Hit Rate: 92.5165%
-Miss Rate: 7.48347%
-Miss Penalty: 400 cycles
-Average Access Time: 30.8591 cycles
-Cache Associativity: 8
-Total Cache Size: 1024 bytes
-______________________________________
-___________________________________________________
-
-With FIFO
-2-way set-associative cache:
-write-allocate and write-back
-./csim 256 2 16 write-allocate write-back fifo <traces/gcc.trace
-Total cycles: 11367381
-Hit Rate: 96.9163%
-Miss Rate: 3.08368%
-Miss Penalty: 400 cycles
-Average Access Time: 13.3039 cycles
-Cache Associativity: 2
-Total Cache Size: 256 bytes
-
-write-allocate and write-through
-./csim 256 2 16 write-allocate write-through fifo <traces/gcc.trace
-Total cycles: 25421398
-Hit Rate: 96.9163%
-Miss Rate: 3.08368%
-Miss Penalty: 400 cycles
-Average Access Time: 13.3039 cycles
-Cache Associativity: 2
-Total Cache Size: 256 bytes
-
-no-write-allocate and write-through
-./csim 256 2 16 no-write-allocate write-through fifo <traces/gcc.trace
-Total cycles: 23608720
-Hit Rate: 91.5675%
-Miss Rate: 8.43251%
-Miss Penalty: 400 cycles
-Average Access Time: 34.6457 cycles
-Cache Associativity: 2
-Total Cache Size: 256 bytes
-______________________________________
-
-4-way set-associative cache:
-write-allocate and write-back
-./csim 256 4 16 write-allocate write-back fifo <traces/gcc.trace
-Total cycles: 9831818
-Hit Rate: 97.3889%
-Miss Rate: 2.6111%
-Miss Penalty: 400 cycles
-Average Access Time: 11.4183 cycles
-Cache Associativity: 4
-Total Cache Size: 512 bytes
-
-write-allocate and write-through
-./csim 256 4 16 write-allocate write-through fifo <traces/gcc.trace
-Total cycles: 24504871
-Hit Rate: 97.3889%
-Miss Rate: 2.6111%
-Miss Penalty: 400 cycles
-Average Access Time: 11.4183 cycles
-Cache Associativity: 4
-Total Cache Size: 512 bytes
-
-no-write-allocate and write-through
-./csim 256 4 16 no-write-allocate write-through fifo <traces/gcc.trace
-Total cycles: 22931617
-Hit Rate: 92.0569%
-Miss Rate: 7.94306%
-Miss Penalty: 400 cycles
-Average Access Time: 32.6928 cycles
-Cache Associativity: 4
-Total Cache Size: 512 bytes
-______________________________________
-
-8-way set-associative cache:
-write-allocate and write-back
-./csim 256 8 16 write-allocate write-back fifo <traces/gcc.trace
-Total cycles: 8817745
-Hit Rate: 97.6074%
-Miss Rate: 2.39256%
-Miss Penalty: 400 cycles
-Average Access Time: 10.5463 cycles
-Cache Associativity: 8
-Total Cache Size: 1024 bytes
-
-write-allocate and write-through
-./csim 256 8 16 write-allocate write-through fifo <traces/gcc.trace
-Total cycles: 24091828
-Hit Rate: 97.6074%
-Miss Rate: 2.39256%
-Miss Penalty: 400 cycles
-Average Access Time: 10.5463 cycles
-Cache Associativity: 8
-Total Cache Size: 1024 bytes
-
-no-write-allocate and write-through
-./csim 256 8 16 no-write-allocate write-through fifo <traces/gcc.trace
-Total cycles: 22679449
-Hit Rate: 92.3965%
-Miss Rate: 7.60351%
-Miss Penalty: 400 cycles
-Average Access Time: 31.338 cycles
-Cache Associativity: 8
-Total Cache Size: 1024 bytes
-______________________________________
-___________________________________________________
-___________________________________________________________________
-
-Number of sets in the cache: 256 
-number of bytes in each block: 4
-
-Direct Mapping
-FIFO and LRU yields the same result here since direct mapping does not use eviction.
-
-write-allocate and write-back
-./csim 256 1 4 write-allocate write-back lru <traces/gcc.trace
-Total cycles: 15949698
-Hit Rate: 80.9214%
-Miss Rate: 19.0786%
-Miss Penalty: 100 cycles
-Average Access Time: 19.8878 cycles
-Cache Associativity: 1
-Total Cache Size: 32 bytes
-
-write-allocate and write-through
-./csim 256 1 4 write-allocate write-through lru <traces/gcc.trace
-Total cycles: 25463287
-Hit Rate: 80.9214%
-Miss Rate: 19.0786%
-Miss Penalty: 100 cycles
-Average Access Time: 19.8878 cycles
-Cache Associativity: 1
-Total Cache Size: 32 bytes
-
-no-write-allocate and write-back
-./csim 256 1 4 write-allocate write-back lru <traces/gcc.trace
-Total cycles: 15949698
-Hit Rate: 80.9214%
-Miss Rate: 19.0786%
-Miss Penalty: 100 cycles
-Average Access Time: 19.8878 cycles
-Cache Associativity: 1
-Total Cache Size: 32 bytes
-___________________________________________________________________
-
-Set-Associative Caches:
-
-With LRU
-2-way set-associative cache:
-write-allocate and write-back
-./csim 256 2 4 write-allocate write-back lru <traces/gcc.trace
-Total cycles: 8734821
-Hit Rate: 90.6218%
-Miss Rate: 9.37824%
-Miss Penalty: 100 cycles
-Average Access Time: 10.2845 cycles
-Cache Associativity: 2
-Total Cache Size: 64 bytes
-
-write-allocate and write-through
-./csim 256 2 4 write-allocate write-through lru <traces/gcc.trace
-Total cycles: 21760489
-Hit Rate: 90.6218%
-Miss Rate: 9.37824%
-Miss Penalty: 100 cycles
-Average Access Time: 10.2845 cycles
-Cache Associativity: 2
-Total Cache Size: 64 bytes
-
-no-write-allocate and write-through
-./csim 256 2 4 no-write-allocate write-through lru <traces/gcc.trace
-Total cycles: 22082041
-Hit Rate: 87.7803%
-Miss Rate: 12.2197%
-Miss Penalty: 100 cycles
-Average Access Time: 13.0975 cycles
-Cache Associativity: 2
-Total Cache Size: 64 bytes
-______________________________________
-
-4-way set-associative cache:
-write-allocate and write-back
-./csim 256 4 4 write-allocate write-back lru <traces/gcc.trace
-Total cycles: 7150535
-Hit Rate: 92.8739%
-Miss Rate: 7.12608%
-Miss Penalty: 100 cycles
-Average Access Time: 8.05482 cycles
-Cache Associativity: 4
-Total Cache Size: 128 bytes
-
-write-allocate and write-through
-./csim 256 4 4 write-allocate write-through lru <traces/gcc.trace
-Total cycles: 20853847
-Hit Rate: 92.8739%
-Miss Rate: 7.12608%
-Miss Penalty: 100 cycles
-Average Access Time: 8.05482 cycles
-Cache Associativity: 4
-Total Cache Size: 128 bytes
-
-no-write-allocate and write-through
-./csim 256 4 4 no-write-allocate write-through lru <traces/gcc.trace
-Total cycles: 21234205
-Hit Rate: 90.2318%
-Miss Rate: 9.76821%
-Miss Penalty: 100 cycles
-Average Access Time: 10.6705 cycles
-Cache Associativity: 4
-Total Cache Size: 128 bytes
-______________________________________
-
-8-way set-associative cache:
-write-allocate and write-back
-./csim 256 8 4 write-allocate write-back lru <traces/gcc.trace
-Total cycles: 6727015
-Hit Rate: 93.3548%
-Miss Rate: 6.64517%
-Miss Penalty: 100 cycles
-Average Access Time: 7.57872 cycles
-Cache Associativity: 8
-Total Cache Size: 256 bytes
-
-write-allocate and write-through
-./csim 256 8 4 write-allocate write-through lru <traces/gcc.trace
-Total cycles: 20683072
-Hit Rate: 93.3548%
-Miss Rate: 6.64517%
-Miss Penalty: 100 cycles
-Average Access Time: 7.57872 cycles
-Cache Associativity: 8
-Total Cache Size: 256 bytes
-
-no-write-allocate and write-through
-./csim 256 8 4 no-write-allocate write-through lru <traces/gcc.trace
-Total cycles: 21079072
-Hit Rate: 90.6805%
-Miss Rate: 9.31949%
-Miss Penalty: 100 cycles
-Average Access Time: 10.2263 cycles
-Cache Associativity: 8
-Total Cache Size: 256 bytes
-______________________________________
-___________________________________________________
-
-With FIFO
-2-way set-associative cache:
-write-allocate and write-back
-./csim 256 2 4 write-allocate write-back fifo <traces/gcc.trace
-Total cycles: 9286075
-Hit Rate: 89.9729%
-Miss Rate: 10.0271%
-Miss Penalty: 100 cycles
-Average Access Time: 10.9268 cycles
-Cache Associativity: 2
-Total Cache Size: 64 bytes
-
-write-allocate and write-through
-./csim 256 2 4 write-allocate write-through fifo <traces/gcc.trace
-Total cycles: 21987793
-Hit Rate: 89.9729%
-Miss Rate: 10.0271%
-Miss Penalty: 100 cycles
-Average Access Time: 10.9268 cycles
-Cache Associativity: 2
-Total Cache Size: 64 bytes
-
-no-write-allocate and write-through
-./csim 256 2 4 no-write-allocate write-through fifo <traces/gcc.trace
-Total cycles: 22270141
-Hit Rate: 87.0139%
-Miss Rate: 12.9861%
-Miss Penalty: 100 cycles
-Average Access Time: 13.8562 cycles
-Cache Associativity: 2
-Total Cache Size: 64 bytes
-______________________________________
-
-4-way set-associative cache:
-write-allocate and write-back
-./csim 256 4 4 write-allocate write-back fifo <traces/gcc.trace
-Total cycles: 7628611
-Hit Rate: 92.2875%
-Miss Rate: 7.71249%
-Miss Penalty: 100 cycles
-Average Access Time: 8.63537 cycles
-Cache Associativity: 4
-Total Cache Size: 128 bytes
-
-write-allocate and write-through
-./csim 256 4 4 write-allocate write-through fifo <traces/gcc.trace
-Total cycles: 21056203
-Hit Rate: 92.2875%
-Miss Rate: 7.71249%
-Miss Penalty: 100 cycles
-Average Access Time: 8.63537 cycles
-Cache Associativity: 4
-Total Cache Size: 128 bytes
-
-no-write-allocate and write-through
-./csim 256 4 4 no-write-allocate write-through fifo <traces/gcc.trace
-Total cycles: 21390526
-Hit Rate: 89.6345%
-Miss Rate: 10.3655%
-Miss Penalty: 100 cycles
-Average Access Time: 11.2618 cycles
-Cache Associativity: 4
-Total Cache Size: 128 bytes
-______________________________________
-
-8-way set-associative cache:
-write-allocate and write-back
-./csim 256 8 4 write-allocate write-back fifo <traces/gcc.trace
-Total cycles: 7006549
-Hit Rate: 93.0124%
-Miss Rate: 6.98763%
-Miss Penalty: 100 cycles
-Average Access Time: 7.91775 cycles
-Cache Associativity: 8
-Total Cache Size: 256 bytes
-
-write-allocate and write-through
-./csim 256 8 4 write-allocate write-through fifo <traces/gcc.trace
-Total cycles: 20799595
-Hit Rate: 93.0124%
-Miss Rate: 6.98763%
-Miss Penalty: 100 cycles
-Average Access Time: 7.91775 cycles
-Cache Associativity: 8
-Total Cache Size: 256 bytes
-
-no-write-allocate and write-through
-./csim 256 8 4 no-write-allocate write-through fifo <traces/gcc.trace
-Total cycles: 21173617
-Hit Rate: 90.3359%
-Miss Rate: 9.66408%
-Miss Penalty: 100 cycles
-Average Access Time: 10.5674 cycles
-Cache Associativity: 8
-Total Cache Size: 256 bytes
-______________________________________
-___________________________________________________
-___________________________________________________________________
-
-
-Number of sets in the cache: 512
-number of bytes in each block: 16
-
-
-Direct Mapping
-FIFO and LRU yields the same result here since direct mapping does not use eviction.
-write-allocate and write-back
-./csim 512 1 16 write-allocate write-back lru <traces/gcc.trace
-Total cycles: 14447824
-Hit Rate: 95.8387%
-Miss Rate: 4.16128%
-Miss Penalty: 400 cycles
-Average Access Time: 17.6035 cycles
-Cache Associativity: 1
-Total Cache Size: 128 bytes
-
-write-allocate and write-through
-./csim 512 1 16 write-allocate write-through lru <traces/gcc.trace
-Total cycles: 27512218
-Hit Rate: 95.8387%
-Miss Rate: 4.16128%
-Miss Penalty: 400 cycles
-Average Access Time: 17.6035 cycles
-Cache Associativity: 1
-Total Cache Size: 128 bytes
-
-no-write-allocate and write-back
-./csim 512 1 16 write-allocate write-back lru <traces/gcc.trace
-Total cycles: 14447824
-
-Hit Rate: 95.8387%
-Miss Rate: 4.16128%
-Miss Penalty: 400 cycles
-Average Access Time: 17.6035 cycles
-Cache Associativity: 1
-Total Cache Size: 128 bytes
-___________________________________________________________________
-
-Set-Associative Caches:
-
-With LRU
-2-way set-associative cache:
-write-allocate and write-back
-./csim 512 2 16 write-allocate write-back lru <traces/gcc.trace
-Total cycles: 9575777
-Hit Rate: 97.4585%
-Miss Rate: 2.54148%
-Miss Penalty: 400 cycles
-Average Access Time: 11.1405 cycles
-Cache Associativity: 2
-Total Cache Size: 256 bytes
-
-write-allocate and write-through
-./csim 512 2 16 write-allocate write-through lru <traces/gcc.trace
-Total cycles: 24369253
-Hit Rate: 97.4585%
-Miss Rate: 2.54148%
-Miss Penalty: 400 cycles
-Average Access Time: 11.1405 cycles
-Cache Associativity: 2
-Total Cache Size: 256 bytes
-
-no-write-allocate and write-through
-./csim 512 2 16 no-write-allocate write-through lru <traces/gcc.trace
-Total cycles: 22845034
-Hit Rate: 92.239%
-Miss Rate: 7.76097%
-Miss Penalty: 400 cycles
-Average Access Time: 31.9663 cycles
-Cache Associativity: 2
-Total Cache Size: 256 bytes
-______________________________________
-
-4-way set-associative cache:
-write-allocate and write-back
-./csim 512 4 16 write-allocate write-back lru <traces/gcc.trace
-Total cycles: 8595679
-Hit Rate: 97.6722%
-Miss Rate: 2.32779%
-Miss Penalty: 400 cycles
-Average Access Time: 10.2879 cycles
-Cache Associativity: 4
-Total Cache Size: 512 bytes
-
-write-allocate and write-through
-./csim 512 4 16 write-allocate write-through lru <traces/gcc.trace
-Total cycles: 23963611
-Hit Rate: 97.6722%
-Miss Rate: 2.32779%
-Miss Penalty: 400 cycles
-Average Access Time: 10.2879 cycles
-Cache Associativity: 4
-Total Cache Size: 512 bytes
-
-no-write-allocate and write-through
-./csim 512 4 16 no-write-allocate write-through lru <traces/gcc.trace
-Total cycles: 22583290
-Hit Rate: 92.4892%
-Miss Rate: 7.51082%
-Miss Penalty: 400 cycles
-Average Access Time: 30.9682 cycles
-Cache Associativity: 4
-Total Cache Size: 512 bytes
-______________________________________
-
-8-way set-associative cache:
-write-allocate and write-back
-./csim 512 8 16 write-allocate write-back lru <traces/gcc.trace
-Total cycles: 7598100
-Hit Rate: 97.7539%
-Miss Rate: 2.24615%
-Miss Penalty: 400 cycles
-Average Access Time: 9.96213 cycles
-Cache Associativity: 8
-Total Cache Size: 1024 bytes
-
-write-allocate and write-through
-./csim 512 8 16 write-allocate write-through lru <traces/gcc.trace
-Total cycles: 23805037
-Hit Rate: 97.7539%
-Miss Rate: 2.24615%
-Miss Penalty: 400 cycles
-Average Access Time: 9.96213 cycles
-Cache Associativity: 8
-Total Cache Size: 1024 bytes
-
-no-write-allocate and write-through
-./csim 512 8 16 no-write-allocate write-through lru <traces/gcc.trace
-Total cycles: 22486333
-Hit Rate: 92.5644%
-Miss Rate: 7.43558%
-Miss Penalty: 400 cycles
-Average Access Time: 30.6679 cycles
-Cache Associativity: 8
-Total Cache Size: 1024 bytes
-______________________________________
-___________________________________________________
-
-With FIFO
-2-way set-associative cache:
-write-allocate and write-back
-./csim 512 2 16 write-allocate write-back fifo <traces/gcc.trace
-Total cycles: 10009078
-Hit Rate: 97.323%
-Miss Rate: 2.67703%
-Miss Penalty: 400 cycles
-Average Access Time: 11.6814 cycles
-Cache Associativity: 2
-Total Cache Size: 256 bytes
-
-write-allocate and write-through
-./csim 512 2 16 write-allocate write-through fifo <traces/gcc.trace
-Total cycles: 24629443
-Hit Rate: 97.323%
-Miss Rate: 2.67703%
-Miss Penalty: 400 cycles
-Average Access Time: 11.6814 cycles
-Cache Associativity: 2
-Total Cache Size: 256 bytes
-
-no-write-allocate and write-through
-./csim 512 2 16 no-write-allocate write-through fifo <traces/gcc.trace
-Total cycles: 23030569
-Hit Rate: 91.9689%
-Miss Rate: 8.0311%
-Miss Penalty: 400 cycles
-Average Access Time: 33.0441 cycles
-Cache Associativity: 2
-Total Cache Size: 256 bytes
-______________________________________
-
-4-way set-associative cache:
-write-allocate and write-back
-./csim 512 4 16 write-allocate write-back fifo <traces/gcc.trace
-Total cycles: 8862842
-Hit Rate: 97.5875%
-Miss Rate: 2.41253%
-Miss Penalty: 400 cycles
-Average Access Time: 10.626 cycles
-Cache Associativity: 4
-Total Cache Size: 512 bytes
-
-write-allocate and write-through
-./csim 512 4 16 write-allocate write-through fifo <traces/gcc.trace
-Total cycles: 24127876
-Hit Rate: 97.5875%
-Miss Rate: 2.41253%
-Miss Penalty: 400 cycles
-Average Access Time: 10.626 cycles
-Cache Associativity: 4
-Total Cache Size: 512 bytes
-
-no-write-allocate and write-through
-./csim 512 4 16 no-write-allocate write-through fifo <traces/gcc.trace
-Total cycles: 22706980
-Hit Rate: 92.3575%
-Miss Rate: 7.64249%
-Miss Penalty: 400 cycles
-Average Access Time: 31.4935 cycles
-Cache Associativity: 4
-Total Cache Size: 512 bytes
-______________________________________
-
-8-way set-associative cache:
-write-allocate and write-back
-./csim 512 8 16 write-allocate write-back fifo <traces/gcc.trace
-Total cycles: 7754661
-Hit Rate: 97.7075%
-Miss Rate: 2.29249%
-Miss Penalty: 400 cycles
-Average Access Time: 10.147 cycles
-Cache Associativity: 8
-Total Cache Size: 1024 bytes
-
-write-allocate and write-through
-./csim 512 8 16 write-allocate write-through fifo <traces/gcc.trace
-Total cycles: 23894854
-Hit Rate: 97.7075%
-Miss Rate: 2.29249%
-Miss Penalty: 400 cycles
-Average Access Time: 10.147 cycles
-Cache Associativity: 8
-Total Cache Size: 1024 bytes
-
-no-write-allocate and write-through
-Total cycles: 22544986
-Hit Rate: 92.5148%
-Miss Rate: 7.48522%
-Miss Penalty: 400 cycles
-Average Access Time: 30.866 cycles
-Cache Associativity: 8
-Total Cache Size: 1024 bytes
-______________________________________
-___________________________________________________
-___________________________________________________________________
-
-
-
-Set-Associative Caches:
-
-With LRU
-2-way set-associative cache:
-write-allocate and write-back
-Hit Rates: 0.971213
-Miss Penalties: 267610900 cycles
-Average Access Time: 7.70373e+06 cycles
-Total Cache Size (including overhead): 19456 bits
-
-write-allocate and write-through
-Hit Rates: 0.971213
-Miss Penalties: 625723900 cycles
-Average Access Time: 1.80128e+07 cycles
-Total Cache Size (including overhead): 19456 bits
-
-no-write-allocate and write-through
-Hit Rates: 0.919169
-Miss Penalties: 582846400 cycles
-Average Access Time: 4.71119e+07 cycles
-Total Cache Size (including overhead): 19456 bits
-______________________________________
-
-4-way set-associative cache:
-write-allocate and write-back
-Hit Rates: 0.975499
-Miss Penalties: 233296200 cycles
-Average Access Time: 5.7161e+06 cycles
-Total Cache Size (including overhead): 38912 bits
-
-write-allocate and write-through
-Hit Rates: 0.975499
-Miss Penalties: 604844900 cycles
-Average Access Time: 1.48196e+07 cycles
-Total Cache Size (including overhead): 38912 bits
-
-no-write-allocate and write-through
-Hit Rates: 0.923885
-Miss Penalties: 567345300 cycles
-Average Access Time: 4.31833e+07 cycles
-Total Cache Size (including overhead): 38912 bits
-______________________________________
-
-8-way set-associative cache:
-write-allocate and write-back
-Hit Rates: 0.976906
-Miss Penalties: 213764300 cycles
-Average Access Time: 4.9366e+06 cycles
-Total Cache Size (including overhead): 77824 bits
-
-write-allocate and write-through
-Hit Rates: 0.976906
-Miss Penalties: 598254000 cycles
-Average Access Time: 1.38159e+07 cycles
-Total Cache Size (including overhead): 77824 bits
-
-no-write-allocate and write-through
-Hit Rates: 0.925165
-Miss Penalties: 564113400 cycles
-Average Access Time: 4.22153e+07 cycles
-Total Cache Size (including overhead): 77824 bits
-______________________________________
-___________________________________________________
-
-With FIFO
-2-way set-associative cache:
-write-allocate and write-back
-Hit Rates: 0.969163
-Miss Penalties: 284184500 cycles
-Average Access Time: 8.76333e+06 cycles
-Total Cache Size (including overhead): 19456 bits
-
-write-allocate and write-through
-Hit Rates: 0.969163
-Miss Penalties: 635534900 cycles
-Average Access Time: 1.95978e+07 cycles
-Total Cache Size (including overhead): 19456 bits
-
-no-write-allocate and write-through
-Hit Rates: 0.915675
-Miss Penalties: 590218000 cycles
-Average Access Time: 4.97702e+07 cycles
-Total Cache Size (including overhead): 19456 bits
-______________________________________
-
-4-way set-associative cache:
-write-allocate and write-back
-Hit Rates: 0.973889
-Miss Penalties: 245795400 cycles
-Average Access Time: 6.41797e+06 cycles
-Total Cache Size (including overhead): 38912 bits
-
-write-allocate and write-through
-Hit Rates: 0.973889
-Miss Penalties: 612621700 cycles
-Average Access Time: 1.59962e+07 cycles
-Total Cache Size (including overhead): 38912 bits
-
-no-write-allocate and write-through
-Hit Rates: 0.920569
-Miss Penalties: 573290400 cycles
-Average Access Time: 4.55368e+07 cycles
-Total Cache Size (including overhead): 38912 bits
-______________________________________
-
-8-way set-associative cache:
-write-allocate and write-back
-Hit Rates: 0.976074
-Miss Penalties: 220443600 cycles
-Average Access Time: 5.27424e+06 cycles
-Total Cache Size (including overhead): 77824 bits
-
-write-allocate and write-through
-Hit Rates: 0.976074
-Miss Penalties: 602295700 cycles
-Average Access Time: 1.44103e+07 cycles
-Total Cache Size (including overhead): 77824 bits
-
-no-write-allocate and write-through
-Hit Rates: 0.923965
-Miss Penalties: 566986200 cycles
-Average Access Time: 4.31108e+07 cycles
-Total Cache Size (including overhead): 77824 bits
-______________________________________

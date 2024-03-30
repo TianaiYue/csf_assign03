@@ -62,6 +62,6 @@ void print_summary(const Cache& cache);
 void print_properties(const Cache& cache);
 bool is_power_of_two(int x);
 void validate_parameters(int num_sets, int num_bytes_per_block, bool write_allocate, bool write_back);
-void print_cache_performance(const Cache& cache, int num_blocks_per_set);
+void print_cache_performance(const Cache& cache);
 
 #endif
