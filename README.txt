@@ -63,6 +63,13 @@ average access time compared to Set-Associativity caches. Implementing a fully a
 not be very feasible in reality, especially for larger caches, since it requires more complex hardware to search
 the entire cache to find a match for the requested memory address. 
 
+In refining our cache simulator, we addressed how to handle eviction policies not explicitly defined as FIFO or LRU. 
+Initially, our simulator defaulted to a FIFO in these cases, which overlooked potential misconfigurations. 
+To improve robustness and clarity, we implemented explicit error handling for undefined policies, ensuring the simulator's 
+behavior remains predictable under all circumstances. This enhancement not only strengthened the simulator's reliability 
+but also underscored the importance of careful input and configuration management, marking a significant learning moment 
+in our project about the value of precision in simulation tools.
+
 Thus, taking all components into account, we think that the cache configuration of 
 16 16 64 write-allocate write-back lru yields the best overall effectiveness.
 ___________________________________________________________________
