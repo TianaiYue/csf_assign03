@@ -34,8 +34,14 @@ also increases, so we chose to have 8 bytes per block so that less hardware is n
 relatively same amount of hit rate, total cycle count and average access time.
 We compared different write policies and found that write-allocate with write-back yields higher hit rate,
 smaller total cycle count and less average access time.
-We compared LRU to FIFO, and concluded that LRU yields a higher hit rate, less total cycle count and less
-average access time.
+In our cache simulator's exploration, we rigorously examined FIFO and LRU eviction policies, observing that LRU 
+typically enhances performance by adapting to access patterns. However, an insightful aspect of our development 
+was addressing situations where the eviction policy doesn't align with FIFO or LRU. Initially, our simulator 
+defaulted to a FIFO-like approach in such scenarios, inadvertently overlooking the potential for misconfiguration 
+or unrecognized policies. Recognizing this, we implemented explicit error handling to ensure the simulator's 
+behavior remains transparent and predictable, even when faced with undefined eviction policies. This improvement 
+not only bolstered the simulator's robustness but also underscored the significance of handling edge cases and user 
+inputs meticulously, ensuring the tool's reliability and ease of use.
 
 Taking into account of hit rates, miss penalties, total cache size, average access time and total cycles and
 also concidering a smaller total cache size, we concluded that the combination of 512 2 8 write-allocate write-back lru
