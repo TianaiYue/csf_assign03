@@ -10,7 +10,7 @@ ___________________________________________________________________
 Best Cache Experiment:
 
 Result: We chose a cache size of 16,384 bytes(16KB), and the best overall effectiveness
-is we obtained is 16 setw in the cache, 16 blocks in each set, 64 bytes in each block with write
+is we obtained is 16 sets in the cache, 16 blocks in each set, 64 bytes in each block with write
 policy of write-allocate and write-back, with the eviction policy of lru.
 (16 16 64 write-allocate write-back lru)
 
@@ -19,7 +19,7 @@ of tests focusing on different aspects such as hit rates, miss penalties, total 
 access time and total cycles using the file gcc.trace. This file was selected for its substantial 
 size, providing a robust dataset to mitigate and rule out outliers and make the result more consistent.
 
-We placed our tests in groups, and hold the total cache size constant while varying only one parameter
+We placed our tests in groups, and held the total cache size constant while varying only one parameter
 at a time, adhering to a scientific method that ensures any observed differences in performance are 
 due to the variable being tested. Testing different aspects of cache performance provides a comprehensive 
 understanding of how different cache configurations affect overall system performance and allows us to 
@@ -55,16 +55,16 @@ yields the highest hit rate, but with an average total cycle count and average a
 combinations, and a higher miss penalty of 6400 cycles compared to a fully associative cache which only has
 1600 cycles.
 
-Taking into account of hit rates, miss penalties, total cache size, average access time and total cycles, we concluded 
-that the writing policy of write-allocate and write-back with the eviction policy of lru easily emerges as the better 
-policies for best overall effectiveness. The results show that Fully Associative cache is the best for higher hit rates, 
-but it results in a higher miss penalty, average total cycle count and average access time compared to 
-Set-Associativity caches. Implementing a fully associative cache might also not be very feasible in reality, especially
-for larger caches, since it requires more complex hardware to search the entire cache to find a match for the requested 
-memory address. 
+Taking into account of hit rates, miss penalties, total cache size, average access time and total cycles, 
+we concluded that the writing policy of write-allocate and write-back with the eviction policy of lru easily 
+emerges as the better policies for best overall effectiveness. The results show that Fully Associative cache 
+is the best for higher hit rates, but it results in a higher miss penalty, average total cycle count and 
+average access time compared to Set-Associativity caches. Implementing a fully associative cache might also 
+not be very feasible in reality, especially for larger caches, since it requires more complex hardware to search
+the entire cache to find a match for the requested memory address. 
 
-Thus, taking all components into account, we think that the cache configuration of 16 16 64 write-allocate write-back lru 
-yields the best overall effectiveness.
+Thus, taking all components into account, we think that the cache configuration of 
+16 16 64 write-allocate write-back lru yields the best overall effectiveness.
 ___________________________________________________________________
 
 Tests preform:
