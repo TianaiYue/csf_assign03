@@ -338,7 +338,12 @@ void print_summary(const Cache& cache) {
  *                        which is the set associativity.
  *
  */
-void print_cache_performance(const Cache& cache, int num_blocks_per_set) {
+void print_cache_performance(const Cache& cache) {
+    int totalCacheSize = cache.sets.size() * cache.blocks_per_set * cache.num_bytes_per_block;
+    std::cout << "Total Cache Size: " << totalCacheSize << " bytes" << std::endl;
+
+    std::cout << "Cache Associativity: " << cache.blocks_per_set << std::endl;
+
     int total_accesses = cache.total_loads + cache.total_stores;
     int total_hits = cache.load_hits + cache.store_hits;
     double hitRate = (static_cast<double>(total_hits) / total_accesses) * 100;
@@ -352,9 +357,4 @@ void print_cache_performance(const Cache& cache, int num_blocks_per_set) {
 
     double averageAccessTime = (1 * hitRate + missPenalty * missRate) / 100;
     std::cout << "Average Access Time: " << averageAccessTime << " cycles" << std::endl;
-
-    std::cout << "Cache Associativity: " << num_blocks_per_set << std::endl;
-    
-    int totalCacheSize = num_blocks_per_set * cache.num_bytes_per_block * 8;
-    std::cout << "Total Cache Size: " << totalCacheSize << " bytes" << std::endl;
 }
