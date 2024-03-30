@@ -347,13 +347,13 @@ void print_cache_performance(const Cache& cache) {
     int total_accesses = cache.total_loads + cache.total_stores;
     int total_hits = cache.load_hits + cache.store_hits;
     double hitRate = (static_cast<double>(total_hits) / total_accesses) * 100;
-    std::cout << "Hit Rate: " << hitRate << "%" << std::endl;
+    cout << "Hit Rate: " << hitRate << "%" << endl;
 
     double missRate = 100 - hitRate;
-    std::cout << "Miss Rate: " << missRate << "%" << std::endl;
+    cout << "Miss Rate: " << missRate << "%" << endl;
 
     int missPenalty = (cache.num_bytes_per_block / 4) * 100;
-    std::cout << "Miss Penalty: " << missPenalty << " cycles" << std::endl;
+    cout << "Miss Penalty: " << missPenalty << " cycles" << endl;
 
     double averageAccessTime = (1 * hitRate + missPenalty * missRate) / 100;
     std::cout << "Average Access Time: " << averageAccessTime << " cycles" << std::endl;
